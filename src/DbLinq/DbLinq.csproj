@@ -1,4 +1,5 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -103,6 +104,7 @@
     <Compile Include="Data\Linq\SqlClient\Sql2005Provider.cs" />
     <Compile Include="Data\Linq\SqlClient\Sql2000Provider.cs" />
     <Compile Include="Data\Linq\SqlClient\Sql2008Provider.cs" />
+    <Compile Include="Data\Linq\SqlClient\SqlCeProvider.cs" />
     <Compile Include="Data\Linq\SqlClient\SqlServerProvider.cs" />
     <Compile Include="Data\Linq\SqlClient\SqliteProvider.cs" />
     <Compile Include="Data\Linq\SqlClient\OracleProvider.cs" />
