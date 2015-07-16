@@ -63,7 +63,7 @@ namespace DbLinq.Data.Linq.Mapping
 			if ( ownedMetaType == null )
 				throw new InvalidOperationException("Key in referenced table is of a different SQL MetaData provider");
 
-			_otherMember = ownedMetaType.AssociationsLookup[otherType.GetMembers().Where(m => (AttributeNameNullCheck(m.GetAttribute<AssociationAttribute>()) == associationName) && (m != member)).Single()];
+			_otherMember = ownedMetaType.AssociationsLookup[otherType.GetMembers().Where(m => (AttributeNameNullCheck(m.GetAttribute<AssociationAttribute>()) == associationName) && (m != member)).FirstOrDefault()];
         }
 
 		/// <summary>

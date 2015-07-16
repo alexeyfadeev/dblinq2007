@@ -52,7 +52,7 @@ namespace DbLinq.Util
             // same thing for association
             var reverseAssociation = (from a in reverseTable.Type.Associations
                                       where a.Name == association.Name && a != association
-                                      select a).Single();
+                                      select a).FirstOrDefault();
             return reverseAssociation;
         }
     }
