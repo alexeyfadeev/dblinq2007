@@ -83,6 +83,7 @@ namespace DbLinq.Data.Linq
         private bool deferredLoadingEnabled = true;
 
         private bool queryCacheEnabled = false;
+        private bool shouldConnectionBeDisposed = false;
 
         /// <summary>
         /// Disable the QueryCache: this is surely good for rarely used Select, since preparing
@@ -199,6 +200,7 @@ namespace DbLinq.Data.Linq
 
             IDbConnection dbConnection = ivendor.CreateDbConnection(connectionString);
             Init(new DatabaseContext(dbConnection), null, ivendor);
+            shouldConnectionBeDisposed = true;
 
             Profiler.At("END DataContext(string)");
         }
@@ -1070,6 +1072,11 @@ namespace DbLinq.Data.Linq
 
 			//We own the instance of MemberModificationHandler - we must unregister listeners of entities we attached to
 			MemberModificationHandler.UnregisterAll();
+
+            if (shouldConnectionBeDisposed)
+            {
+                DatabaseContext.Connection.Dispose();
+            }
         }
 
         [DbLinqToDo]
