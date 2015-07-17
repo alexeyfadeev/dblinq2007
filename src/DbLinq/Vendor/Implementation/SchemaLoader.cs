@@ -73,6 +73,13 @@ namespace DbLinq.Vendor.Implementation
             set { log = value; }
         }
 
+        protected bool useContextClassNamePostfix;
+
+        protected string ContextClassNamePostfix
+        {
+            get { return useContextClassNamePostfix ? "Context" : ""; }
+        }
+
         /// <summary>
         /// Loads database schema
         /// </summary>
@@ -84,7 +91,7 @@ namespace DbLinq.Vendor.Implementation
         /// <param name="entityNamespace"></param>
         /// <returns></returns>
         public virtual Database Load(string databaseName, INameAliases nameAliases, NameFormat nameFormat,
-            bool loadStoredProcedures, string contextNamespace, string entityNamespace)
+            bool loadStoredProcedures, string contextNamespace, string entityNamespace, string contextNameMode)
         {
             // check if connection is open. Note: we may use something more flexible
             if (Connection.State != ConnectionState.Open)
@@ -99,7 +106,10 @@ namespace DbLinq.Vendor.Implementation
 
             databaseName = GetDatabaseNameAliased(databaseName, nameAliases);
 
-            var schemaName = NameFormatter.GetSchemaName(databaseName, GetExtraction(databaseName), nameFormat);
+            var extraction = contextNameMode.StartsWith("wordcase") ? WordsExtraction.FromCase : GetExtraction(databaseName);
+            useContextClassNamePostfix = contextNameMode.Contains("context");
+
+            var schemaName = NameFormatter.GetSchemaName(databaseName, extraction, nameFormat, ContextClassNamePostfix);
             var names = new Names();
             var schema = new Database
                              {
@@ -325,7 +335,7 @@ namespace DbLinq.Vendor.Implementation
                 if (string.IsNullOrEmpty(databaseName))
                     throw new ArgumentException("Could not deduce database name from connection string. Please specify /database=<databaseName>");
             }
-            return NameFormatter.GetSchemaName(databaseName, GetExtraction(databaseName), nameFormat);
+            return NameFormatter.GetSchemaName(databaseName, GetExtraction(databaseName), nameFormat, ContextClassNamePostfix);
         }
 
         protected virtual ParameterName CreateParameterName(string dbParameterName, NameFormat nameFormat)

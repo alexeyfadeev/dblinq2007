@@ -337,12 +337,12 @@ namespace DbLinq.Schema.Implementation
         /// <param name="extraction">The extraction.</param>
         /// <param name="nameFormat">The name format.</param>
         /// <returns></returns>
-        public SchemaName GetSchemaName(string dbName, WordsExtraction extraction, NameFormat nameFormat)
+        public SchemaName GetSchemaName(string dbName, WordsExtraction extraction, NameFormat nameFormat, string contextClassNamePostfix)
         {
             var words = GetLanguageWords(nameFormat.Culture);
             var schemaName = new SchemaName { DbName = dbName };
             schemaName.NameWords = ExtractWords(words, dbName, extraction);
-            schemaName.ClassName = Format(words, schemaName.NameWords, nameFormat.Case, Singularization.DontChange);
+            schemaName.ClassName = Format(words, schemaName.NameWords, nameFormat.Case, Singularization.DontChange) + contextClassNamePostfix;
             return schemaName;
         }
 
