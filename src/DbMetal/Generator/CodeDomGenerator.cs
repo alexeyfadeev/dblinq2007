@@ -83,9 +83,23 @@ namespace DbMetal.Generator
         public void Write(TextWriter textWriter, Database dbSchema, GenerationContext context)
         {
             Context = context;
+            
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
                 GenerateCodeDomModel(dbSchema), textWriter, 
                 new CodeGeneratorOptions() {
+                    BracingStyle = "C",
+                    IndentString = "\t",
+                });
+        }
+
+        public void WritePoco(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                GeneratePocoDomModel(dbSchema), textWriter,
+                new CodeGeneratorOptions()
+                {
                     BracingStyle = "C",
                     IndentString = "\t",
                 });
@@ -174,6 +188,18 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
                 _namespace.Types.Add(GenerateTableClass(table, database));
+            return _namespace;
+        }
+
+        protected virtual CodeNamespace GeneratePocoDomModel(Database database)
+        {
+            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            _namespace.Imports.Add(new CodeNamespaceImport("System"));
+
+            foreach (Table table in database.Tables)
+                _namespace.Types.Add(GeneratePocoClass(table, database));
+
             return _namespace;
         }
 
@@ -774,6 +800,36 @@ namespace DbMetal.Generator
             return _class;
         }
 
+        protected CodeTypeDeclaration GeneratePocoClass(Table table, Database database)
+        {
+            var _class = new CodeTypeDeclaration()
+            {
+                IsClass = true,
+                IsPartial = false,
+                Name = table.Type.Name + "Model",
+                TypeAttributes = TypeAttributes.Public,
+                CustomAttributes = { new CodeAttributeDeclaration("Serializable") }
+            };
+
+            WriteCustomTypes(_class, table);
+            foreach (Column column in table.Type.Columns)
+            {
+                var relatedAssociations = from a in table.Type.Associations
+                                          where a.IsForeignKey && a.TheseKeys.Contains(column.Name)
+                                          select a;
+
+                var type = ToCodeTypeReference(column);
+                var columnMember = column.Member ?? column.Name;
+
+                var field = new CodeMemberField(type, columnMember)
+                    { Attributes = MemberAttributes.Public | MemberAttributes.Final };
+                field.Name += " { get; set; }";
+                _class.Members.Add(field);
+            }
+
+            return _class;
+        }
+
         void WriteCustomTypes(CodeTypeDeclaration entity, Table table)
         {
             // detect required custom types
@@ -895,12 +951,20 @@ namespace DbMetal.Generator
 
         static CodeTypeReference ToCodeTypeReference(Column column)
         {
-            var t = System.Type.GetType(column.Type);
-            if (t == null)
+            System.Type t = null;
+            try
+            {
+                t = System.Type.GetType(column.Type);
+                if (t == null)
+                    return new CodeTypeReference(column.Type);
+                return t.IsValueType && column.CanBeNull
+                    ? new CodeTypeReference("System.Nullable", new CodeTypeReference(column.Type))
+                    : new CodeTypeReference(column.Type);
+            }
+            catch (Exception)
+            {
                 return new CodeTypeReference(column.Type);
-            return t.IsValueType && column.CanBeNull
-                ? new CodeTypeReference("System.Nullable", new CodeTypeReference(column.Type))
-                : new CodeTypeReference(column.Type);
+            }
         }
 
         CodeBinaryOperatorExpression ValuesAreNotEqual(CodeExpression a, CodeExpression b)

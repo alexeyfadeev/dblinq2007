@@ -174,7 +174,7 @@ namespace DbMetal.Generator.Implementation
                 if (string.IsNullOrEmpty(filename))
                     filename = dbSchema.Name;
 
-                parameters.Write("<<< writing C# classes in file '{0}'", filename);
+                parameters.Write("<<< writing C# classes into file '{0}'", filename);
                 GenerateCode(parameters, dbSchema, schemaLoader, filename);
 
             }
@@ -232,6 +232,21 @@ namespace DbMetal.Generator.Implementation
             {
                 var generationContext = new GenerationContext(parameters, schemaLoader);
                 codeGenerator.Write(streamWriter, dbSchema, generationContext);
+
+                // Generate POCO models into separate file, if it's needed
+                if (parameters.Poco && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+                {
+                    string pocoFileName = filename.Split('.')[0] + "Models." + filename.Split('.').Last();
+                    parameters.Write("<<< writing POCO models into file '{0}'", pocoFileName);
+
+                    using (var streamWriterPoco = new StreamWriter(pocoFileName))
+                    {
+                        ((CodeDomGenerator)codeGenerator).WritePoco(streamWriterPoco, dbSchema, generationContext);
+                    }
+                    string text = File.ReadAllText(pocoFileName);
+                    text = text.Replace("{ get; set; };", "{ get; set; }");
+                    File.WriteAllText(pocoFileName, text);
+                }
             }
         }
 
@@ -244,6 +259,7 @@ namespace DbMetal.Generator.Implementation
                 schemaLoader = SchemaLoaderFactory.Load(parameters);
 
                 parameters.Write(">>> Reading schema from {0} database", schemaLoader.Vendor.VendorName);
+
                 dbSchema = schemaLoader.Load(parameters.Database, nameAliases,
                     new NameFormat(parameters.Pluralize, GetCase(parameters), new CultureInfo(parameters.Culture)),
                     parameters.Sprocs, parameters.Namespace, parameters.Namespace, parameters.ContextNameMode.ToLower());

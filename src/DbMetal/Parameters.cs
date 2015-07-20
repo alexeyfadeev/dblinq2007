@@ -200,6 +200,11 @@ namespace DbMetal
         /// </summary>
         public string ContextNameMode { get; set; }
 
+        /// <summary>
+        /// Generate POCO models as well
+        /// </summary>
+        public bool Poco { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
@@ -330,6 +335,9 @@ namespace DbMetal
                   "DB-context class naming mode " + 
                   "(default: wordextract; may be: wordextract+context, wordcase, wordcase+context)",
                   v => ContextNameMode = v ?? "wordextract" },
+                { "poco",
+                  "Enables POCO models generating",
+                  v => Poco = v != null },
             };
 
             Extra = Options.Parse(args);
