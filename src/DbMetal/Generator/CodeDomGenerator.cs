@@ -657,6 +657,12 @@ namespace DbMetal.Generator
             return p;
         }
 
+        protected CodeAssignStatement AddTextExpression(string text, CodeExpression stringReference)
+        {
+            return new CodeAssignStatement(stringReference, new CodeBinaryOperatorExpression(stringReference, 
+                CodeBinaryOperatorType.Add, new CodePrimitiveExpression(text)));
+        }
+
         protected CodeTypeDeclaration GenerateTableClass(Table table, Database database)
         {
             var _class = new CodeTypeDeclaration() {
@@ -677,6 +683,12 @@ namespace DbMetal.Generator
             {
                 GenerateINotifyPropertyChanging(_class);
                 GenerateINotifyPropertyChanged(_class);
+            }
+
+            // For InsertSql Property
+            if (Context.Parameters.FastInsert)
+            {
+                _class.BaseTypes.Add("DbLinq.Data.Linq.IInsertSqlEntity");
             }
 
             // Implement Constructor
@@ -711,6 +723,22 @@ namespace DbMetal.Generator
             // todo: add these when the actually get called
             //partial void OnLoaded();
             //partial void OnValidate(System.Data.Linq.ChangeAction action);
+
+            // InsertSql Property for using in ExecuteFastInsert method
+            var stringCreate = new CodePrimitiveExpression("");
+            var stringDeclare = new CodeVariableDeclarationStatement(new CodeTypeReference(typeof(string)), "insertString", stringCreate);
+            var stringReference = new CodeVariableReferenceExpression("insertString");
+            var propertyInsert = new CodeMemberProperty();
+            propertyInsert.Type = new CodeTypeReference(typeof(string));
+            propertyInsert.Name = "InsertSql";
+            propertyInsert.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+            propertyInsert.HasGet = true;
+            propertyInsert.GetStatements.Add(stringDeclare);
+            propertyInsert.GetStatements.Add(AddTextExpression("(", stringReference));
+
+            bool firstColumn = true;
+            var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
+                typeof(float), typeof(double), typeof(decimal), typeof(bool) };            
 
             // columns
             foreach (Column column in table.Type.Columns)
@@ -791,6 +819,60 @@ namespace DbMetal.Generator
                     : ValuesAreNotEqual(new CodeVariableReferenceExpression(field.Name), new CodePropertySetValueReferenceExpression());
                 property.SetStatements.Add(new CodeConditionStatement(condition, whenUpdating.ToArray()));
                 _class.Members.Add(property);
+
+                // Add to InsertSql Property
+                if (Context.Parameters.FastInsert)
+                {
+                    var t = System.Type.GetType(column.Type);
+                    bool isNumericType = numericTypes.Contains(t);
+
+                    if (!firstColumn)
+                    {
+                        propertyInsert.GetStatements.Add(AddTextExpression(", ", stringReference));
+                    }
+                    if (!isNumericType)
+                    {
+                        propertyInsert.GetStatements.Add(AddTextExpression("'", stringReference));
+                    }
+
+                    if (!string.IsNullOrEmpty(column.Expression))
+                    {
+                        propertyInsert.GetStatements.Add(AddTextExpression(column.Expression, stringReference));
+                    }
+                    else
+                    {
+                        var toStringInvoke = new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember), "ToString");
+                        if (t == typeof(DateTime))
+                        {
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression("yyyy.MM.dd HH:mm:ss.fffffff"));
+                        }
+                        else if (t == typeof(bool))
+                        {
+                            toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "ToUpper");
+                        }
+                        else if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
+                        {
+                            toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "Replace");
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression('.'));
+                        }
+                        var addExpression = new CodeBinaryOperatorExpression(stringReference, CodeBinaryOperatorType.Add, toStringInvoke);
+                        propertyInsert.GetStatements.Add(new CodeAssignStatement(stringReference, addExpression));
+                    }
+
+                    if (!isNumericType)
+                    {
+                        propertyInsert.GetStatements.Add(AddTextExpression("'", stringReference));
+                    }
+                    firstColumn = false;
+                }
+            }
+
+            if (Context.Parameters.FastInsert)
+            {
+                propertyInsert.GetStatements.Add(AddTextExpression(")", stringReference));
+                propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(stringReference));
+                _class.Members.Add(propertyInsert);
             }
 
             GenerateEntityChildren(_class, table, database);

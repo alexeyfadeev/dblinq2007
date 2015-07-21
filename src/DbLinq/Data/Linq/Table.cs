@@ -190,6 +190,19 @@ namespace DbLinq.Data.Linq
                 Context.RegisterInsert(entity);
         }
 
+        public void ExecuteFastInsert(IEnumerable<IInsertSqlEntity> entities)
+        {
+            if (!entities.Any()) return;
+
+            var queryContext = new QueryContext(Context);
+            var query = Context.QueryBuilder.GetInsertQuery(entities.First(), queryContext);
+            string sqlInsert = query.Sql.ToString().Split(new string[] { "VALUES" }, StringSplitOptions.None).First();
+            string sqlValues = string.Join(", ", entities.Select(x => x.InsertSql).ToArray());
+            string sql = string.Format("{0}VALUES {1};", sqlInsert, sqlValues);
+
+            Context.ExecuteCommand(sql);
+        }
+
         #endregion
 
         #region Delete functions

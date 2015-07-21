@@ -109,4 +109,10 @@ namespace DbLinq.Data.Linq
         /// <param name="entity">The entity.</param>
         void InsertOnSubmit(object entity);
     }
+
+    /// <summary> Interface for ExecuteFastInsert command </summary>
+    public partial interface IInsertSqlEntity
+    {
+        string InsertSql { get; }
+    }
 }

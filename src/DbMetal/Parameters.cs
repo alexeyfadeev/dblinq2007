@@ -205,6 +205,11 @@ namespace DbMetal
         /// </summary>
         public bool Poco { get; set; }
 
+        /// <summary>
+        /// Enable Fast-insert method
+        /// </summary>
+        public bool FastInsert { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
@@ -338,6 +343,9 @@ namespace DbMetal
                 { "poco",
                   "Enables POCO models generating",
                   v => Poco = v != null },
+                { "fast-insert",
+                  "Enables ExecuteFastInsert method",
+                  v => FastInsert = v != null },
             };
 
             Extra = Options.Parse(args);
