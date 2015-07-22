@@ -63,6 +63,9 @@ namespace DbLinq.Vendor.Implementation
 
             /// <summary> Extended data type for PostgreSQL </summary>
             public string UdtName { get; set; }
+
+            /// <summary> Column comment </summary>
+            public string Comment { get; set; }
         }
     }
 }

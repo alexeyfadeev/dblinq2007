@@ -72,6 +72,7 @@ namespace DbLinq.PostgreSql
             column.Precision = rdr.GetAsNullableNumeric<int>(field++);
             column.Scale = rdr.GetAsNullableNumeric<int>(field++);
             column.UdtName = rdr.GetAsString(field++);
+            column.Comment = rdr.GetAsString(field++);
 
             column.FullType = GetColumnFullType(domain_name, domain_schema, column);
 
@@ -81,14 +82,34 @@ namespace DbLinq.PostgreSql
         protected override IList<IDataTableColumn> ReadColumns(IDbConnection connectionString, string databaseName)
         {
             const string sql = @"
-SELECT table_schema, table_name, column_name
-    ,is_nullable, data_type, domain_schema, domain_name, column_default
-    ,character_maximum_length, numeric_precision, numeric_scale, udt_name
-FROM information_schema.COLUMNS
-WHERE table_catalog=:db
+WITH description AS
+(
+    SELECT pc.relname as table_name, pa.attname as column_name, pd.description as comment
+    FROM pg_description pd, pg_class pc, pg_attribute pa
+    WHERE pa.attrelid=pc.oid
+    AND pd.objoid=pc.oid
+    AND pd.objsubid=pa.attnum
+),
+information AS
+(
+    SELECT table_schema, table_name, column_name, is_nullable, data_type, domain_schema, domain_name,
+        column_default, character_maximum_length, numeric_precision, numeric_scale, udt_name
+    FROM information_schema.COLUMNS
+    WHERE table_catalog=:db
     AND table_schema NOT IN ('pg_catalog','information_schema')
-ORDER BY ordinal_position
-";
+)
+
+SELECT i.*, d.comment
+    FROM information i, description d
+    WHERE i.table_name=d.table_name
+    AND i.column_name=d.column_name
+
+UNION
+
+SELECT i.*, '' AS description
+FROM information i
+    WHERE ARRAY[table_name::text, column_name::text] NOT IN 
+    (SELECT ARRAY[table_name::text, column_name::text] FROM description)";
 
             return DataCommand.Find<IDataTableColumn>(connectionString, sql, ":db", databaseName, ReadColumn);
         }
