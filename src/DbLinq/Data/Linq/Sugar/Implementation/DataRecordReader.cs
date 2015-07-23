@@ -26,6 +26,7 @@
 
 using System;
 using System.Data;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using DbLinq.Data.Linq.Mapping;
@@ -153,6 +154,30 @@ namespace DbLinq.Data.Linq.Sugar.Implementation
             {
                 return (Expression<Func<IDataRecord, MappingContext, int, System.Data.Linq.Binary>>)((dataRecord, mappingContext, valueIndex)
                                                                                     => dataRecord.GetAsBinary(valueIndex));
+            }
+            if (simpleReturnType == typeof(Dictionary<string, string>))
+            {
+                return (Expression<Func<IDataRecord, MappingContext, int, Dictionary<string, string>>>)((dataRecord, mappingContext, valueIndex)
+                                                                                    => dataRecord.GetAsStringDictionary(valueIndex));
+            }
+            if (simpleReturnType == typeof(Dictionary<string, int>))
+            {
+                return (Expression<Func<IDataRecord, MappingContext, int, Dictionary<string, int>>>)((dataRecord, mappingContext, valueIndex)
+                                                                                    => dataRecord.GetAsDictionary<int>(valueIndex));
+            }
+            if (simpleReturnType == typeof(Dictionary<string, float>))
+            {
+                return (Expression<Func<IDataRecord, MappingContext, int, Dictionary<string, float>>>)((dataRecord, mappingContext, valueIndex)
+                                                                                    => dataRecord.GetAsDictionary<float>(valueIndex));
+            }
+            if (simpleReturnType == typeof(Dictionary<string, double>))
+            {
+                return (Expression<Func<IDataRecord, MappingContext, int, Dictionary<string, double>>>)((dataRecord, mappingContext, valueIndex)
+                                                                                    => dataRecord.GetAsDictionary<double>(valueIndex));
+            }
+            if (simpleReturnType == typeof(Dictionary<string, DateTime>))
+            {
+                return (Expression<Func<IDataRecord, MappingContext, int, Dictionary<string, DateTime>>>)((dataRecord, mappingContext, valueIndex)                                                                                    => dataRecord.GetAsDictionary<DateTime>(valueIndex));
             }
             // for polymorphic types especially for ExecuteQuery<>()
             if (simpleReturnType == typeof(object))

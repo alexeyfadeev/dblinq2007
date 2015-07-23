@@ -25,6 +25,10 @@
 #endregion
 using System;
 using System.Data;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace DbLinq.Util
 {
@@ -35,6 +39,8 @@ namespace DbLinq.Util
     {
         // please note that sometimes (depending on driver), GetValue() returns DBNull instead of null
         // so at this level, we handle both
+
+        private static NumberFormatInfo formatPoint = new NumberFormatInfo() { NumberDecimalSeparator = "." };
 
         public static string GetAsString(this IDataRecord dataRecord, int index)
         {
@@ -129,6 +135,46 @@ namespace DbLinq.Util
                 return null;
             object obj = dataRecord.GetValue(index);
             return obj;
+        }
+
+        public static Dictionary<string, string> GetAsStringDictionary(this IDataRecord dataRecord, int index)
+        {
+            string str = GetAsString(dataRecord, index);
+            if (string.IsNullOrEmpty(str))
+                return new Dictionary<string, string>();
+
+            var items = str.Split(',');
+            var pairs = items.Select(x => new
+            {
+                key = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$1").Trim(),
+                value = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$2").Trim()
+            });
+            return pairs.ToDictionary(x => x.key, x => x.value);
+        }
+
+        private static T ConvertFromString<T>(string str)        
+        {
+            if(typeof(T) == typeof(DateTime))
+            {
+                return (T)(object)DateTime.ParseExact(str, "yyyy.MM.dd HH:mm:ss.fffffff", null);
+            }
+
+            return (T)Convert.ChangeType(str, typeof(T), formatPoint);
+        }
+
+        public static Dictionary<string, T> GetAsDictionary<T>(this IDataRecord dataRecord, int index)
+        {
+            string str = GetAsString(dataRecord, index);
+            if (string.IsNullOrEmpty(str))
+                return new Dictionary<string, T>();
+
+            var items = str.Split(',');
+            var pairs = items.Select(x => new 
+            {
+                key = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$1").Trim(),
+                value = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$2").Trim()
+            });
+            return pairs.ToDictionary(x => x.key, x => ConvertFromString<T>(x.value));
         }
 
         public static DateTime GetAsDateTime(this IDataRecord dataRecord, int index)

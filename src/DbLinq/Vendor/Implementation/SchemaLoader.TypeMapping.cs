@@ -266,12 +266,55 @@ namespace DbLinq.Vendor.Implementation
                 return typeof(object[]);
 
             case "hstore":
-                return typeof(Dictionary<string, string>);
+                if (dataType is DataTableColumn)
+                {
+                    var dataTypeColumn = dataType as DataTableColumn;
+                    string comment = (dataTypeColumn.Comment ?? "").Trim().ToLower();
+                    switch (comment)
+                    {
+                        case "int":
+                        case "integer":
+                            return typeof(Dictionary<string, int>);
+                        case "real":
+                            return typeof(Dictionary<string, float>);
+                        case "double":
+                        case "double precision":
+                            return typeof(Dictionary<string, double>);
+                        case "date":
+                        case "timestamp":
+                        case "time":
+                            return typeof(Dictionary<string, DateTime>);
+                        default:
+                            return typeof(Dictionary<string, string>);
+                    }                    
+                }
+                else
+                {
+                    return typeof(Dictionary<string, string>);
+                }
 
             case "user-defined":
                 if ((dataType is DataTableColumn) && (dataType as DataTableColumn).UdtName.Replace("_", "") == "hstore")
                 {
-                    return typeof(Dictionary<string, string>);
+                    var dataTypeColumn = dataType as DataTableColumn;
+                    string comment = (dataTypeColumn.Comment ?? "").Trim().ToLower();
+                    switch (comment)
+                    {
+                        case "int":
+                        case "integer":
+                            return typeof(Dictionary<string, int>);
+                        case "real":
+                            return typeof(Dictionary<string, float>);
+                        case "double":
+                        case "double precision":
+                            return typeof(Dictionary<string, double>);
+                        case "date":
+                        case "timestamp":
+                        case "time":
+                            return typeof(Dictionary<string, DateTime>);
+                        default:
+                            return typeof(Dictionary<string, string>);
+                    }
                 }
                 throw new ArgumentException(string.Format("Don't know how to convert the SQL type '{0}' into a managed type.",
                     dataTypeL), "dataType");

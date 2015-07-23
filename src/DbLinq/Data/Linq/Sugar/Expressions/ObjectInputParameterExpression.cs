@@ -26,7 +26,11 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
 
 using DbLinq.Data.Linq.Sugar.Expressions;
 
@@ -43,6 +47,8 @@ namespace DbLinq.Data.Linq.Sugar.Expressions
         public string Alias { get; private set; }
         public Type ValueType { get; private set; }
 
+        private static NumberFormatInfo formatPoint = new NumberFormatInfo() { NumberDecimalSeparator = "." };
+
         private readonly Delegate getValueDelegate;
         /// <summary>
         /// Returns the outer parameter value
@@ -50,7 +56,24 @@ namespace DbLinq.Data.Linq.Sugar.Expressions
         /// <returns></returns>
         public object GetValue(object o)
         {
-            return getValueDelegate.DynamicInvoke(o);
+            var ret = getValueDelegate.DynamicInvoke(o);
+
+            // For hstore data type
+            if (ret is IDictionary)
+            {
+                if(ret is Dictionary<string, string>)
+                    return string.Join(",", (ret as Dictionary<string, string>).Select(x => x.Key + "=>" + x.Value).ToArray());
+                else if (ret is Dictionary<string, int>)
+                    return string.Join(",", (ret as Dictionary<string, int>).Select(x => x.Key + "=>" + x.Value.ToString()).ToArray());
+                else if (ret is Dictionary<string, float>)
+                    return string.Join(",", (ret as Dictionary<string, float>).Select(x => x.Key + "=>" + x.Value.ToString(formatPoint)).ToArray());
+                else if (ret is Dictionary<string, double>)
+                    return string.Join(",", (ret as Dictionary<string, double>).Select(x => x.Key + "=>" + x.Value.ToString(formatPoint)).ToArray());
+                else if (ret is Dictionary<string, DateTime>)
+                    return string.Join(",", (ret as Dictionary<string, DateTime>).Select(x => x.Key + "=>" + x.Value.ToString("yyyy.MM.dd HH:mm:ss.fffffff")).ToArray());
+            }
+
+            return ret;
         }
 
         public ObjectInputParameterExpression(LambdaExpression lambda, Type valueType, string alias)
