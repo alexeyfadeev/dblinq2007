@@ -190,7 +190,7 @@ namespace DbLinq.Data.Linq
                 Context.RegisterInsert(entity);
         }
 
-        public void ExecuteFastInsert(IEnumerable<IInsertSqlEntity> entities)
+        public void ExecuteFastInsert<TSubEntity>(IEnumerable<TSubEntity> entities) where TSubEntity : IInsertSqlEntity
         {
             if (!entities.Any()) return;
 
