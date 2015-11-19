@@ -1017,6 +1017,17 @@ namespace DbLinq.Data.Linq
         }
 
         /// <summary>
+        /// Execute raw SQL query and return primitive object
+        /// </summary>
+        public IEnumerable<TResult> ExecuteQueryPrimitive<TResult>(string query, params object[] parameters)
+        {
+            if (query == null)
+                throw new ArgumentNullException("query");
+
+            return ExecuteQuery<ObjectWrapper>(query, parameters).Select(x => (TResult)x.Value);
+        }
+
+        /// <summary>
         /// Gets or sets the load options
         /// </summary>
         [DbLinqToDo]
