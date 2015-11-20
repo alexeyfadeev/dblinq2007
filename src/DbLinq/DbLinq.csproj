@@ -206,6 +206,7 @@
     <Compile Include="Data\Linq\Sugar\QueryContext.cs" />
     <Compile Include="Data\Linq\Table.cs" />
     <Compile Include="Data\Linq\Table.Extended.cs" />
+    <Compile Include="Data\Linq\Utils.cs" />
     <Compile Include="DbLinqToDoAttribute.cs" />
     <Compile Include="Factory\DbLinqAttribute.cs" />
     <Compile Include="Factory\Implementation\ReflectionObjectFactory.cs" />

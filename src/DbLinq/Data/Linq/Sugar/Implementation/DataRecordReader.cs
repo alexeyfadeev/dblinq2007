@@ -185,6 +185,11 @@ namespace DbLinq.Data.Linq.Sugar.Implementation
                 return (Expression<Func<IDataRecord, MappingContext, int, object>>)((dataRecord, mappingContext, valueIndex)
                                                                                     => GetAsObject(dataRecord, valueIndex, mappingContext));
             }
+            if (simpleReturnType == typeof(List<string>))
+            {
+                return (Expression<Func<IDataRecord, MappingContext, int, List<string>>>)((dataRecord, mappingContext, valueIndex)
+                                                                                    => dataRecord.GetAsStringList(valueIndex));
+            }
             //s_rdr.GetUInt32();
             //s_rdr.GetFloat();
             string msg = "RowEnum TODO L381: add support for type " + simpleReturnType;

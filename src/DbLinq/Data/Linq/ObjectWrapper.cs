@@ -1,7 +1,7 @@
 ﻿namespace DbLinq.Data.Linq
 {
-    public class ObjectWrapper
+    public class ObjectWrapper<T>
     {
-        public object Value { get; set; }
+        public T Value { get; set; }
     }
 }

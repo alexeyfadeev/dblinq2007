@@ -26,6 +26,7 @@
 using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -830,10 +831,6 @@ namespace DbMetal.Generator
                     {
                         propertyInsert.GetStatements.Add(AddTextExpression(", ", stringReference));
                     }
-                    if (!isNumericType)
-                    {
-                        propertyInsert.GetStatements.Add(AddTextExpression("'", stringReference));
-                    }
 
                     if (!string.IsNullOrEmpty(column.Expression))
                     {
@@ -841,7 +838,22 @@ namespace DbMetal.Generator
                     }
                     else
                     {
-                        var toStringInvoke = new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember), "ToString");
+                        var CodeStatementList = new List<CodeStatement>();
+
+                        if (!isNumericType)
+                        {
+                            CodeStatementList.Add(AddTextExpression("'", stringReference));
+                        }
+
+                        string toStringMethodName = "ToString";
+                        if (typeof(IDictionary).IsAssignableFrom(t))
+                        {
+                            toStringMethodName = "ToHStoreString";
+                        }
+
+                        var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);
+
+                        var toStringInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
                         if (t == typeof(DateTime))
                         {
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression("yyyy.MM.dd HH:mm:ss.fffffff"));
@@ -857,13 +869,30 @@ namespace DbMetal.Generator
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression('.'));
                         }
                         var addExpression = new CodeBinaryOperatorExpression(stringReference, CodeBinaryOperatorType.Add, toStringInvoke);
-                        propertyInsert.GetStatements.Add(new CodeAssignStatement(stringReference, addExpression));
+                        CodeStatementList.Add(new CodeAssignStatement(stringReference, addExpression));
+
+                        if (!isNumericType)
+                        {
+                            CodeStatementList.Add(AddTextExpression("'", stringReference));
+                        }
+
+                        // For reference types: if/else statement and null assigment
+                        if (t.IsClass)
+                        {
+                            var codeStatements = CodeStatementList.ToArray();
+
+                            var inequality = new CodeBinaryOperatorExpression(columnProperty, CodeBinaryOperatorType.IdentityInequality, new CodePrimitiveExpression(null));
+
+                            var ifCondition = new CodeConditionStatement(inequality, codeStatements, 
+                                new CodeStatement[] { AddTextExpression("null", stringReference) });
+                            propertyInsert.GetStatements.Add(ifCondition);
+                        }
+                        else
+                        {
+                            CodeStatementList.ForEach(x => propertyInsert.GetStatements.Add(x));
+                        }
                     }
 
-                    if (!isNumericType)
-                    {
-                        propertyInsert.GetStatements.Add(AddTextExpression("'", stringReference));
-                    }
                     firstColumn = false;
                 }
             }

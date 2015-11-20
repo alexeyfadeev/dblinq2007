@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{97305421-3071-4175-AA3C-9A432CC28121}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -156,6 +156,7 @@
     <Compile Include="Data\Linq\Mapping\LambdaMetaAccessor.cs" />
     <Compile Include="Data\Linq\Mapping\MappingContext.cs" />
     <Compile Include="Data\Linq\Mapping\XmlMappingSource.cs" />
+    <Compile Include="Data\Linq\ObjectWrapper.cs" />
     <Compile Include="Data\Linq\RefreshMode.cs" />
     <Compile Include="Data\Linq\SqlClient\FirebirdProvider.cs" />
     <Compile Include="Data\Linq\SqlClient\IngresProvider.cs" />
@@ -254,6 +255,7 @@
     <Compile Include="Data\Linq\Sugar\QueryContext.cs" />
     <Compile Include="Data\Linq\Sugar\UpsertQuery.cs" />
     <Compile Include="Data\Linq\Table.cs" />
+    <Compile Include="Data\Linq\Utils.cs" />
     <Compile Include="DbLinqToDoAttribute.cs" />
     <Compile Include="Factory\DbLinqAttribute.cs" />
     <Compile Include="Factory\Implementation\ReflectionObjectFactory.cs" />

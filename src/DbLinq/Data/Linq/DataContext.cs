@@ -1024,7 +1024,7 @@ namespace DbLinq.Data.Linq
             if (query == null)
                 throw new ArgumentNullException("query");
 
-            return ExecuteQuery<ObjectWrapper>(query, parameters).Select(x => (TResult)x.Value);
+            return ExecuteQuery<ObjectWrapper<TResult>>(query, parameters).Select(x => x.Value);
         }
 
         /// <summary>

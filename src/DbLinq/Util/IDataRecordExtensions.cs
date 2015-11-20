@@ -142,14 +142,10 @@ namespace DbLinq.Util
             string str = GetAsString(dataRecord, index);
             if (string.IsNullOrEmpty(str))
                 return new Dictionary<string, string>();
-
-            var items = str.Split(',');
-            var pairs = items.Select(x => new
-            {
-                key = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$1").Trim(),
-                value = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$2").Trim()
-            });
-            return pairs.ToDictionary(x => x.key, x => x.value);
+            
+            var regex = new Regex(@"\""(\w+)\""=>\""(.*?)\""");
+            var matches = regex.Matches(str).Cast<Match>();
+            return matches.ToDictionary(x => x.Groups[1].Value, x => x.Groups[2].Value);
         }
 
         private static T ConvertFromString<T>(string str)        
@@ -168,13 +164,18 @@ namespace DbLinq.Util
             if (string.IsNullOrEmpty(str))
                 return new Dictionary<string, T>();
 
-            var items = str.Split(',');
-            var pairs = items.Select(x => new 
-            {
-                key = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$1").Trim(),
-                value = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$2").Trim()
-            });
-            return pairs.ToDictionary(x => x.key, x => ConvertFromString<T>(x.value));
+            var regex = new Regex(@"\""(\w+)\""=>\""(.*?)\""");
+            var matches = regex.Matches(str).Cast<Match>();
+            return matches.ToDictionary(x => x.Groups[1].Value, x => ConvertFromString<T>(x.Groups[2].Value));
+        }
+
+        public static List<string> GetAsStringList(this IDataRecord dataRecord, int index)
+        {
+            string str = GetAsString(dataRecord, index);
+            //if (string.IsNullOrEmpty(str))
+                return new List<string>();
+
+            //var items = str.Split(' ');
         }
 
         public static DateTime GetAsDateTime(this IDataRecord dataRecord, int index)
