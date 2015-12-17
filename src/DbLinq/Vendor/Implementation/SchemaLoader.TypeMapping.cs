@@ -316,7 +316,7 @@ namespace DbLinq.Vendor.Implementation
                             return typeof(Dictionary<string, string>);
                     }
                 }
-                throw new ArgumentException(string.Format("Don't know how to convert the SQL type '{0}' into a managed type.",
+                else throw new ArgumentException(string.Format("Don't know how to convert the SQL type '{0}' into a managed type.",
                     dataTypeL), "dataType");
 
             case "internal":
@@ -324,6 +324,9 @@ namespace DbLinq.Vendor.Implementation
             case "anyelement":
             case "ghstore":
                 return typeof(object);
+
+            case "tsvector":
+                return typeof(List<string>);
 
             // if we fall to this case, we must handle the type
             default:

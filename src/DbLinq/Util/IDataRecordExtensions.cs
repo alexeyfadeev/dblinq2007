@@ -142,14 +142,10 @@ namespace DbLinq.Util
             string str = GetAsString(dataRecord, index);
             if (string.IsNullOrEmpty(str))
                 return new Dictionary<string, string>();
-
-            var items = str.Split(',');
-            var pairs = items.Select(x => new
-            {
-                key = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$1").Trim(),
-                value = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$2").Trim()
-            });
-            return pairs.ToDictionary(x => x.key, x => x.value);
+            
+            var regex = new Regex(@"\""(\w+)\""=>\""(.*?)\""");
+            var matches = regex.Matches(str).Cast<Match>();
+            return matches.ToDictionary(x => x.Groups[1].Value, x => x.Groups[2].Value);
         }
 
         private static T ConvertFromString<T>(string str)        
@@ -168,13 +164,41 @@ namespace DbLinq.Util
             if (string.IsNullOrEmpty(str))
                 return new Dictionary<string, T>();
 
-            var items = str.Split(',');
-            var pairs = items.Select(x => new 
+            var regex = new Regex(@"\""(\w+)\""=>\""(.*?)\""");
+            var matches = regex.Matches(str).Cast<Match>();
+            return matches.ToDictionary(x => x.Groups[1].Value, x => ConvertFromString<T>(x.Groups[2].Value));
+        }
+
+        public static List<string> GetAsStringList(this IDataRecord dataRecord, int index)
+        {
+            var ret = new List<string>();
+
+            string str = GetAsString(dataRecord, index);
+            if (string.IsNullOrEmpty(str))
+                return ret;
+
+            var regex = new Regex(@"\'(\w+)\':(\d+)([A-Z]*)\s*");
+            var matches = regex.Matches(str).Cast<Match>().Select(x => new { pos = int.Parse(x.Groups[2].Value), match = x }).OrderBy(x => x.pos);
+            if (matches.Any())
             {
-                key = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$1").Trim(),
-                value = Regex.Replace(x, @"\""(.*?)\""=>\""(.*?)\""", "$2").Trim()
-            });
-            return pairs.ToDictionary(x => x.key, x => ConvertFromString<T>(x.value));
+                foreach (var x in matches)
+                {
+                    while (x.pos > ret.Count + 1)
+                    {
+                        ret.Add("");
+                    }
+                    if (string.IsNullOrEmpty(x.match.Groups[3].Value))
+                    {
+                        ret.Add(x.match.Groups[1].Value);
+                    }
+                    else
+                    {
+                        ret.Add(string.Format("{0}:{1}", x.match.Groups[1].Value, x.match.Groups[3]));
+                    }
+                }
+            }
+
+            return ret;
         }
 
         public static DateTime GetAsDateTime(this IDataRecord dataRecord, int index)
