@@ -171,11 +171,34 @@ namespace DbLinq.Util
 
         public static List<string> GetAsStringList(this IDataRecord dataRecord, int index)
         {
-            string str = GetAsString(dataRecord, index);
-            //if (string.IsNullOrEmpty(str))
-                return new List<string>();
+            var ret = new List<string>();
 
-            //var items = str.Split(' ');
+            string str = GetAsString(dataRecord, index);
+            if (string.IsNullOrEmpty(str))
+                return ret;
+
+            var regex = new Regex(@"\'(\w+)\':(\d+)([A-Z]*)\s*");
+            var matches = regex.Matches(str).Cast<Match>().Select(x => new { pos = int.Parse(x.Groups[2].Value), match = x }).OrderBy(x => x.pos);
+            if (matches.Any())
+            {
+                foreach (var x in matches)
+                {
+                    while (x.pos > ret.Count + 1)
+                    {
+                        ret.Add("");
+                    }
+                    if (string.IsNullOrEmpty(x.match.Groups[3].Value))
+                    {
+                        ret.Add(x.match.Groups[1].Value);
+                    }
+                    else
+                    {
+                        ret.Add(string.Format("{0}:{1}", x.match.Groups[1].Value, x.match.Groups[3]));
+                    }
+                }
+            }
+
+            return ret;
         }
 
         public static DateTime GetAsDateTime(this IDataRecord dataRecord, int index)

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Globalization;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace DbLinq.Data.Linq
 {
@@ -34,6 +35,66 @@ namespace DbLinq.Data.Linq
         public static string CreateHStoreItemString(string key, string value)
         {
             return string.Format("\"{0}\"=>\"{1}\"", key, value);
+        }
+
+        public static string ListToTsVectorString(List<string> tokens)
+        {
+            if (tokens.SelectMany(x => x).Any(c => c == ':'))
+            {
+                var sb = new StringBuilder();
+                string weightPrev = "";
+                var weightGroup = new List<string>();
+
+                foreach (string token in tokens)
+                {
+                    int separatorPos = token.IndexOf(':');
+                    string weight = separatorPos >= 0 ? token.Substring(separatorPos + 1) : "";
+
+                    if (weight != weightPrev && weightGroup.Any())
+                    {
+                        sb.Append(CreateTsVectorStringItem(weightGroup, weightPrev)).Append(" || ");
+                    }
+
+                    weightGroup.Add(separatorPos >= 0 ? token.Substring(0, separatorPos) : token);
+                    weightPrev = weight;
+                }
+                sb.Append(CreateTsVectorStringItem(weightGroup, weightPrev));
+
+                return sb.ToString();
+            }
+            else
+            {
+                return string.Format("to_tsvector('{0}')", string.Join(" ", tokens.Select(x => 
+                    (string.IsNullOrEmpty(x) || x.Trim() == "") ? "or" : x).ToArray()));
+            }
+        }
+
+        private static string CreateTsVectorStringItem(List<string> weightGroup, string weight)
+        {
+            string ret = "";
+
+            if (string.IsNullOrEmpty(weight))
+            {
+                if (weightGroup.Any(x => !string.IsNullOrEmpty(x) && x.Trim() != ""))
+                {
+                    ret = string.Format("to_tsvector('{0}')", string.Join(" ", weightGroup.Select(x =>
+                        (string.IsNullOrEmpty(x) || x.Trim() == "") ? "or" : x).ToArray()));
+                }
+                else ret = string.Format("'{0}'", string.Join(" ", weightGroup.Select(x => "or").ToArray()));
+            }
+            else
+            {
+                ret = string.Format("setweight(to_tsvector('{0}'),'{1}')", string.Join(" ", weightGroup.Select(x =>
+                            (string.IsNullOrEmpty(x) || x.Trim() == "") ? "or" : x).ToArray()), weight);
+            }
+            weightGroup.Clear();
+
+            return ret;
+        }
+
+        public static string ToTsVectorString(this List<string> tokens)
+        {
+            return ListToTsVectorString(tokens);
         }
     }
 }
