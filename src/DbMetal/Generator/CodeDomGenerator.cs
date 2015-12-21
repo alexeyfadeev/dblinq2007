@@ -739,7 +739,7 @@ namespace DbMetal.Generator
 
             bool firstColumn = true;
             var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
-                typeof(float), typeof(double), typeof(decimal), typeof(bool) };            
+                typeof(float), typeof(double), typeof(decimal), typeof(bool), typeof(List<string>) };            
 
             // columns
             foreach (Column column in table.Type.Columns)
@@ -849,6 +849,10 @@ namespace DbMetal.Generator
                         if (typeof(IDictionary).IsAssignableFrom(t))
                         {
                             toStringMethodName = "ToHStoreString";
+                        }
+                        else if (t == typeof(List<string>))
+                        {
+                            toStringMethodName = "ToTsVectorString";
                         }
 
                         var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);

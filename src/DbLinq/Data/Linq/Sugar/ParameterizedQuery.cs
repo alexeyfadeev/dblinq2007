@@ -57,11 +57,18 @@ namespace DbLinq.Data.Linq.Sugar
             ITransactionalCommand command = base.GetCommand(createTransaction);
             foreach (var inputParameter in InputParameters)
             {
-                var dbParameter = command.Command.CreateParameter();
-                dbParameter.ParameterName = DataContext.Vendor.SqlProvider.GetParameterName(inputParameter.Alias);
                 object value = NormalizeDbType(inputParameter.GetValue(Target));
-                dbParameter.SetValue(value, inputParameter.ValueType);
-                command.Command.Parameters.Add(dbParameter);
+                if (inputParameter.ValueType == typeof(List<string>))
+                {
+                    command.Command.CommandText = command.Command.CommandText.Replace(":" + inputParameter.Alias, (string)value);
+                }
+                else
+                {
+                    var dbParameter = command.Command.CreateParameter();
+                    dbParameter.ParameterName = DataContext.Vendor.SqlProvider.GetParameterName(inputParameter.Alias);
+                    dbParameter.SetValue(value, inputParameter.ValueType);
+                    command.Command.Parameters.Add(dbParameter);
+                }
             }
             return command;
         }
