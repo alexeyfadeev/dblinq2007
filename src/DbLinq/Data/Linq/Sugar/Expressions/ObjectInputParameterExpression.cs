@@ -63,6 +63,12 @@ namespace DbLinq.Data.Linq.Sugar.Expressions
                 return Utils.DictionaryToHStoreString((IDictionary)ret);
             }
 
+            // For tsvector data type
+            if (ret is List<string>)
+            {
+                return Utils.ListToTsVectorString((List<string>)ret);
+            }
+
             return ret;
         }
 
