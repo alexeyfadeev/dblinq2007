@@ -142,8 +142,8 @@ namespace DbLinq.Util
             string str = GetAsString(dataRecord, index);
             if (string.IsNullOrEmpty(str))
                 return new Dictionary<string, string>();
-            
-            var regex = new Regex(@"\""(\w+)\""=>\""(.*?)\""");
+
+            var regex = new Regex(@"\""([^""]+)\""=>\""(.*?)\""");
             var matches = regex.Matches(str).Cast<Match>();
             return matches.ToDictionary(x => x.Groups[1].Value, x => x.Groups[2].Value);
         }
@@ -164,7 +164,7 @@ namespace DbLinq.Util
             if (string.IsNullOrEmpty(str))
                 return new Dictionary<string, T>();
 
-            var regex = new Regex(@"\""(\w+)\""=>\""(.*?)\""");
+            var regex = new Regex(@"\""([^""]+)\""=>\""(.*?)\""");
             var matches = regex.Matches(str).Cast<Match>();
             return matches.ToDictionary(x => x.Groups[1].Value, x => ConvertFromString<T>(x.Groups[2].Value));
         }
