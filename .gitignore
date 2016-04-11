@@ -8,3 +8,4 @@ obj/
 *.wsdl
 build/
 build.dbg/
+build.dbg.mono/
