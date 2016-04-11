@@ -34,7 +34,7 @@ namespace DbLinq.Data.Linq
 
         public static string CreateHStoreItemString(string key, string value)
         {
-            return string.Format("\"{0}\"=>\"{1}\"", key, value);
+            return string.Format("\"{0}\"=>\"{1}\"", key.Replace("\"", "\\\""), value.Replace("\"", "\\\""));
         }
 
         public static string ListToTsVectorString(List<string> tokens)
