@@ -45,7 +45,7 @@ namespace DbLinq.Data.Linq
             }
             else
             {
-                value = value.Replace("\"", "\\\"");
+                value = value.Replace("\"", "\\\"").Replace("[", "`").Replace("]", "`");
             }
             return string.Format("\"{0}\"=>\"{1}\"", key.Replace("\"", "\\\""), value);
         }

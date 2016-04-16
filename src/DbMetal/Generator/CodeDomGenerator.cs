@@ -872,11 +872,25 @@ namespace DbMetal.Generator
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression('.'));
                         }
+                        if (!isNumericType)
+                        {
+                            // Processing quotes
+                            toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "Replace");
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression("'"));
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression("''"));
+                        }
+
                         var addExpression = new CodeBinaryOperatorExpression(stringReference, CodeBinaryOperatorType.Add, toStringInvoke);
                         CodeStatementList.Add(new CodeAssignStatement(stringReference, addExpression));
 
                         if (!isNumericType)
                         {
+                            
+                            if (toStringMethodName != "ToHStoreString")
+                            {
+                                var replaceInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
+                            }
+
                             CodeStatementList.Add(AddTextExpression("'", stringReference));
                         }
 
