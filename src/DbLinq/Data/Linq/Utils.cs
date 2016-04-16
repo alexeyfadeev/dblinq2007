@@ -13,18 +13,23 @@ namespace DbLinq.Data.Linq
 
         public static string DictionaryToHStoreString(IDictionary dict)
         {
+			IEnumerable<string> hstoreItemString = null;
+			
             if (dict is Dictionary<string, string>)
-                return string.Join(",", (dict as Dictionary<string, string>).Select(x => CreateHStoreItemString(x.Key, x.Value)).ToArray());
+				hstoreItemString = (dict as Dictionary<string, string>).Select(x => CreateHStoreItemString(x.Key, x.Value));
             else if (dict is Dictionary<string, int>)
-                return string.Join(",", (dict as Dictionary<string, int>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString())).ToArray());
+                hstoreItemString = (dict as Dictionary<string, int>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString()));
             else if (dict is Dictionary<string, float>)
-                return string.Join(",", (dict as Dictionary<string, float>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString(FormatPoint))).ToArray());
+                hstoreItemString = (dict as Dictionary<string, float>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString(FormatPoint)));
             else if (dict is Dictionary<string, double>)
-                return string.Join(",", (dict as Dictionary<string, double>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString(FormatPoint))).ToArray());
+                hstoreItemString = (dict as Dictionary<string, double>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString(FormatPoint)));
             else if (dict is Dictionary<string, DateTime>)
-                return string.Join(",", (dict as Dictionary<string, DateTime>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString("yyyy.MM.dd HH:mm:ss.fffffff"))).ToArray());
+                hstoreItemString = (dict as Dictionary<string, DateTime>).Select(x => CreateHStoreItemString(x.Key, x.Value.ToString("yyyy.MM.dd HH:mm:ss.fffffff")));
 
-            return null;
+			if(hstoreItemString != null)
+				return string.Join(",", hstoreItemString.Where(x => x != null).ToArray());
+			
+            else return null;
         }
 
         public static string ToHStoreString(this IDictionary dict)
@@ -34,7 +39,15 @@ namespace DbLinq.Data.Linq
 
         public static string CreateHStoreItemString(string key, string value)
         {
-            return string.Format("\"{0}\"=>\"{1}\"", key.Replace("\"", "\\\""), value.Replace("\"", "\\\""));
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                value = value.Replace("\"", "\\\"");
+            }
+            return string.Format("\"{0}\"=>\"{1}\"", key.Replace("\"", "\\\""), value);
         }
 
         public static string ListToTsVectorString(List<string> tokens)
