@@ -850,6 +850,10 @@ namespace DbMetal.Generator
                         {
                             toStringMethodName = "ToHStoreString";
                         }
+                        else if (t != typeof(string) && typeof(IEnumerable).IsAssignableFrom(t))
+                        {
+                            toStringMethodName = "ToArrayString";
+                        }
                         else if (t == typeof(List<string>))
                         {
                             toStringMethodName = "ToTsVectorString";

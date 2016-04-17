@@ -200,7 +200,7 @@ namespace DbLinq.Data.Linq
             string sqlValues = string.Join(", ", entities.Select(x => x.InsertSql).ToArray());
             string sql = string.Format("{0}VALUES {1};", sqlInsert, sqlValues);
 
-            Context.ExecuteCommand(sql);
+            Context.ExecuteCommandRaw(sql);
         }
 
         #endregion

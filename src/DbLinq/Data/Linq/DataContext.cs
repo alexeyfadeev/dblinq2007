@@ -987,6 +987,15 @@ namespace DbLinq.Data.Linq
         }
 
         /// <summary>
+        /// use ExecuteCommandRaw to call raw unfiltered SQL (unsafe!)
+        /// </summary>
+        public int ExecuteCommandRaw(string command)
+        {
+            var directQuery = new DirectQuery(this, command, new List<string>());
+            return QueryRunner.Execute(directQuery, new object[0]);
+        }
+
+        /// <summary>
         /// Execute raw SQL query and return object
         /// </summary>
         public IEnumerable<TResult> ExecuteQuery<TResult>(string query, params object[] parameters) where TResult : class, new()

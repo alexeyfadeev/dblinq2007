@@ -45,9 +45,38 @@ namespace DbLinq.Data.Linq
             }
             else
             {
-                value = value.Replace("\"", "\\\"").Replace("[", "`").Replace("]", "`");
+                value = value.Replace("\"", "\\\"");
             }
             return string.Format("\"{0}\"=>\"{1}\"", key.Replace("\"", "\\\""), value);
+        }
+
+        public static string ToArrayString(this IEnumerable array)
+        {
+            string ret = "{";
+
+            if (array is string[])
+            {
+                ret += string.Join(",", (array as string[]).Select(x => "\"" + x + "\"").ToArray());
+            }
+            else if (array is float[])
+            {
+                ret += string.Join(",", (array as float[]).Select(x => x.ToString(FormatPoint)).ToArray());
+            }
+            else if (array is double[])
+            {
+                ret += string.Join(",", (array as double[]).Select(x => x.ToString(FormatPoint)).ToArray());
+            }
+            else if (array is DateTime[])
+            {
+                ret += string.Join(",", (array as DateTime[]).Select(x => x.ToString("yyyy.MM.dd HH:mm:ss.fffffff")).ToArray());
+            }
+            else if (array is int[])
+            {
+                ret += string.Join(",", (array as int[]).Select(x => x.ToString()).ToArray());
+            }
+
+            ret += "}";
+            return ret;
         }
 
         public static string ListToTsVectorString(List<string> tokens)
