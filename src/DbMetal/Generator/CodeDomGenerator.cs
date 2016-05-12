@@ -861,7 +861,17 @@ namespace DbMetal.Generator
 
                         var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);
 
-                        var toStringInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
+                        CodeMethodInvokeExpression toStringInvoke;
+                        if (t.IsValueType && column.CanBeNull)
+                        {
+                            var valueProp = new CodePropertyReferenceExpression(columnProperty, "Value");
+                            toStringInvoke = new CodeMethodInvokeExpression(valueProp, toStringMethodName);
+                        }
+                        else
+                        {
+                            toStringInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
+                        }
+
                         if (t == typeof(DateTime))
                         {
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression("yyyy.MM.dd HH:mm:ss.fffffff"));
@@ -889,12 +899,6 @@ namespace DbMetal.Generator
 
                         if (!isNumericType)
                         {
-                            
-                            if (toStringMethodName != "ToHStoreString")
-                            {
-                                var replaceInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
-                            }
-
                             CodeStatementList.Add(AddTextExpression("'", stringReference));
                         }
 
@@ -906,6 +910,16 @@ namespace DbMetal.Generator
                             var inequality = new CodeBinaryOperatorExpression(columnProperty, CodeBinaryOperatorType.IdentityInequality, new CodePrimitiveExpression(null));
 
                             var ifCondition = new CodeConditionStatement(inequality, codeStatements, 
+                                new CodeStatement[] { AddTextExpression("null", stringReference) });
+                            propertyInsert.GetStatements.Add(ifCondition);
+                        }
+                        else if (column.CanBeNull)
+                        {
+                            var codeStatements = CodeStatementList.ToArray();
+
+                            var hasValue = new CodePropertyReferenceExpression(columnProperty, "HasValue");
+
+                            var ifCondition = new CodeConditionStatement(hasValue, codeStatements,
                                 new CodeStatement[] { AddTextExpression("null", stringReference) });
                             propertyInsert.GetStatements.Add(ifCondition);
                         }
