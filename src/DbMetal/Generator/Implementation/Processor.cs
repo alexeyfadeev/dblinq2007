@@ -247,6 +247,29 @@ namespace DbMetal.Generator.Implementation
                     text = text.Replace("{ get; set; };", "{ get; set; }");
                     File.WriteAllText(pocoFileName, text);
                 }
+
+                // Generate IContext models into separate file, if it's needed
+                if (parameters.IContext && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+                {
+                    string interfaceFileName = Path.Combine(Path.GetDirectoryName(filename), "I" + Path.GetFileName(filename));
+                    parameters.Write("<<< writing IContext into file '{0}'", interfaceFileName);
+
+                    using (var streamWriterIContext = new StreamWriter(interfaceFileName))
+                    {
+                        ((CodeDomGenerator)codeGenerator).WriteIContext(streamWriterIContext, dbSchema, generationContext);
+                    }
+
+
+                    string proxyFileName = Path.Combine(Path.GetDirectoryName(filename),
+                        Path.GetFileNameWithoutExtension(filename) + "Proxy.cs");
+
+                    parameters.Write("<<< writing ContextProxy into file '{0}'", proxyFileName);
+
+                    using (var streamWriterContextProxy = new StreamWriter(proxyFileName))
+                    {
+                        ((CodeDomGenerator)codeGenerator).WriteContextProxy(streamWriterContextProxy, dbSchema, generationContext);
+                    }
+                }
             }
         }
 

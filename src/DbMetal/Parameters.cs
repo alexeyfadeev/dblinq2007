@@ -210,6 +210,11 @@ namespace DbMetal
         /// </summary>
         public bool FastInsert { get; set; }
 
+        /// <summary>
+        /// Generate IContext interface and context partial implementation
+        /// </summary>
+        public bool IContext { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
@@ -346,6 +351,9 @@ namespace DbMetal
                 { "fast-insert",
                   "Enables ExecuteFastInsert method",
                   v => FastInsert = v != null },
+                { "icontext",
+                  "Enables IContext and ContextProxy generating",
+                  v => IContext = v != null },
             };
 
             Extra = Options.Parse(args);
