@@ -201,14 +201,19 @@ namespace DbMetal
         public string ContextNameMode { get; set; }
 
         /// <summary>
-        /// Generate POCO models as well
+        /// Generate POCO models as well (true for Serializable attribute)
         /// </summary>
-        public bool Poco { get; set; }
+        public bool? Poco { get; set; }
 
         /// <summary>
         /// Enable Fast-insert method
         /// </summary>
         public bool FastInsert { get; set; }
+
+        /// <summary>
+        /// Generate IContext interface and context partial implementation
+        /// </summary>
+        public bool IContext { get; set; }
 
         TextWriter log;
         public TextWriter Log
@@ -340,12 +345,15 @@ namespace DbMetal
                   "DB-context class naming mode " + 
                   "(default: wordextract; may be: wordextract+context, wordcase, wordcase+context)",
                   v => ContextNameMode = v ?? "wordextract" },
-                { "poco",
-                  "Enables POCO models generating",
-                  v => Poco = v != null },
+                { "poco=",
+                  "Enables POCO models generating. If Serializable attribute is needed, set =serializable value, else don't set any value",
+                  v => Poco = v == "serializable" },
                 { "fast-insert",
                   "Enables ExecuteFastInsert method",
                   v => FastInsert = v != null },
+                { "icontext",
+                  "Enables IContext and ContextProxy generating",
+                  v => IContext = v != null },
             };
 
             Extra = Options.Parse(args);

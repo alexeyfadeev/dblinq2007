@@ -729,12 +729,24 @@ namespace Mono.Options
 #else
 		public List<string> Parse (IEnumerable<string> arguments)
 		{
+            // For processing arguments can be used with value or not, i.e. -poco and -poco=serializable
+            string[] bothModeArguments = { "poco" };
+
 			OptionContext c = CreateOptionContext ();
 			c.OptionIndex = -1;
 			bool process = true;
 			List<string> unprocessed = new List<string> ();
 			Option def = Contains ("<>") ? this ["<>"] : null;
-			foreach (string argument in arguments) {
+			foreach (string arg in arguments)
+            {
+                string argument = arg;
+
+                // For processing bothModeArguments
+                if (Array.Exists(bothModeArguments, el => el == argument.Replace("-", "").ToLower()))
+                {
+                    argument += ":";
+                }
+
 				++c.OptionIndex;
 				if (argument == "--") {
 					process = false;

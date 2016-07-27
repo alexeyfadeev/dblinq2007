@@ -93,12 +93,38 @@ namespace DbMetal.Generator
                 });
         }
 
-        public void WritePoco(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WritePoco(TextWriter textWriter, Database dbSchema, GenerationContext context, bool addSerializableAttr)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GeneratePocoDomModel(dbSchema), textWriter,
+                GeneratePocoDomModel(dbSchema, addSerializableAttr), textWriter,
+                new CodeGeneratorOptions()
+                {
+                    BracingStyle = "C",
+                    IndentString = "\t",
+                });
+        }
+
+        public void WriteIContext(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                GenerateIContextDomModel(dbSchema), textWriter,
+                new CodeGeneratorOptions()
+                {
+                    BracingStyle = "C",
+                    IndentString = "\t",
+                });
+        }
+
+        public void WriteContextProxy(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                GenerateContextProxyDomModel(dbSchema), textWriter,
                 new CodeGeneratorOptions()
                 {
                     BracingStyle = "C",
@@ -192,14 +218,136 @@ namespace DbMetal.Generator
             return _namespace;
         }
 
-        protected virtual CodeNamespace GeneratePocoDomModel(Database database)
+        protected virtual CodeNamespace GeneratePocoDomModel(Database database, bool addSerializableAttr)
+        {
+            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            if (addSerializableAttr)
+            {
+                _namespace.Imports.Add(new CodeNamespaceImport("System"));
+            }
+
+            foreach (Table table in database.Tables)
+                _namespace.Types.Add(GeneratePocoClass(table, database, addSerializableAttr));
+
+            return _namespace;
+        }
+
+        protected virtual CodeNamespace GenerateIContextDomModel(Database database)
         {
             CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
 
             _namespace.Imports.Add(new CodeNamespaceImport("System"));
+            _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+
+            var _interface = new CodeTypeDeclaration("I" + database.Class)
+            {
+                IsInterface = true,
+                IsPartial = true
+            };
+            _interface.BaseTypes.Add(new CodeTypeReference("IDisposable"));
 
             foreach (Table table in database.Tables)
-                _namespace.Types.Add(GeneratePocoClass(table, database));
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var field = new CodeMemberProperty
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = table.Member + "s",
+                    Type = new CodeTypeReference("IQueryable", tableType),
+                };
+                field.HasGet = true;
+
+                _interface.Members.Add(field);
+            }
+
+            var voidTypeRef = new CodeTypeReference(typeof(void));
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Add" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, table.Member.ToLower()));
+
+                _interface.Members.Add(method);
+            }
+
+            var methodSubmit = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "SubmitChanges",
+                ReturnType = voidTypeRef
+            };
+
+            _interface.Members.Add(methodSubmit);
+
+            _namespace.Types.Add(_interface);
+
+            return _namespace;
+        }
+
+        protected virtual CodeNamespace GenerateContextProxyDomModel(Database database)
+        {
+            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+
+            var _class = new CodeTypeDeclaration(database.Class)
+            {
+                IsClass = true,
+                IsPartial = true
+            };
+            _class.BaseTypes.Add(new CodeTypeReference("I" + database.Class));
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var field = new CodeMemberProperty
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = table.Member + "s",
+                    Type = new CodeTypeReference("IQueryable", tableType),
+                };
+                field.HasGet = true;
+
+                field.GetStatements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression(table.Member)));
+
+                _class.Members.Add(field);
+            }
+
+            var voidTypeRef = new CodeTypeReference(typeof(void));
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                string paramName = char.ToLowerInvariant(table.Member[0]) + table.Member.Substring(1);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Add" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, paramName));
+
+                var prop = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), table.Member);
+                method.Statements.Add(new CodeMethodInvokeExpression(prop, "InsertOnSubmit", new CodeVariableReferenceExpression(paramName)));
+
+                method.Statements.Add(new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "SubmitChanges"));
+
+                _class.Members.Add(method);
+            }
+
+            _namespace.Types.Add(_class);
 
             return _namespace;
         }
@@ -947,16 +1095,20 @@ namespace DbMetal.Generator
             return _class;
         }
 
-        protected CodeTypeDeclaration GeneratePocoClass(Table table, Database database)
+        protected CodeTypeDeclaration GeneratePocoClass(Table table, Database database, bool addSerializableAttr)
         {
             var _class = new CodeTypeDeclaration()
             {
                 IsClass = true,
                 IsPartial = false,
                 Name = table.Type.Name + "Model",
-                TypeAttributes = TypeAttributes.Public,
-                CustomAttributes = { new CodeAttributeDeclaration("Serializable") }
+                TypeAttributes = TypeAttributes.Public                
             };
+
+            if(addSerializableAttr)
+            {
+                _class.CustomAttributes.Add(new CodeAttributeDeclaration("Serializable"));
+            }
 
             WriteCustomTypes(_class, table);
             foreach (Column column in table.Type.Columns)
