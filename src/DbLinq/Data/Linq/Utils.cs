@@ -74,6 +74,10 @@ namespace DbLinq.Data.Linq
             {
                 ret += string.Join(",", (array as int[]).Select(x => x.ToString()).ToArray());
             }
+            else if (array is long[])
+            {
+                ret += string.Join(",", (array as long[]).Select(x => x.ToString()).ToArray());
+            }
 
             ret += "}";
             return ret;
