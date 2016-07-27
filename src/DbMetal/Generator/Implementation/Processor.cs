@@ -234,14 +234,14 @@ namespace DbMetal.Generator.Implementation
                 codeGenerator.Write(streamWriter, dbSchema, generationContext);
 
                 // Generate POCO models into separate file, if it's needed
-                if (parameters.Poco && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+                if (parameters.Poco.HasValue && codeGenerator is CodeDomGenerator && filename.Contains('.'))
                 {
                     string pocoFileName = filename.Split('.')[0] + "Models." + filename.Split('.').Last();
                     parameters.Write("<<< writing POCO models into file '{0}'", pocoFileName);
 
                     using (var streamWriterPoco = new StreamWriter(pocoFileName))
                     {
-                        ((CodeDomGenerator)codeGenerator).WritePoco(streamWriterPoco, dbSchema, generationContext);
+                        ((CodeDomGenerator)codeGenerator).WritePoco(streamWriterPoco, dbSchema, generationContext, parameters.Poco.Value);
                     }
                     string text = File.ReadAllText(pocoFileName);
                     text = text.Replace("{ get; set; };", "{ get; set; }");

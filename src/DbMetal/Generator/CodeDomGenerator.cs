@@ -93,12 +93,12 @@ namespace DbMetal.Generator
                 });
         }
 
-        public void WritePoco(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WritePoco(TextWriter textWriter, Database dbSchema, GenerationContext context, bool addSerializableAttr)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GeneratePocoDomModel(dbSchema), textWriter,
+                GeneratePocoDomModel(dbSchema, addSerializableAttr), textWriter,
                 new CodeGeneratorOptions()
                 {
                     BracingStyle = "C",
@@ -218,14 +218,17 @@ namespace DbMetal.Generator
             return _namespace;
         }
 
-        protected virtual CodeNamespace GeneratePocoDomModel(Database database)
+        protected virtual CodeNamespace GeneratePocoDomModel(Database database, bool addSerializableAttr)
         {
             CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
 
-            _namespace.Imports.Add(new CodeNamespaceImport("System"));
+            if (addSerializableAttr)
+            {
+                _namespace.Imports.Add(new CodeNamespaceImport("System"));
+            }
 
             foreach (Table table in database.Tables)
-                _namespace.Types.Add(GeneratePocoClass(table, database));
+                _namespace.Types.Add(GeneratePocoClass(table, database, addSerializableAttr));
 
             return _namespace;
         }
@@ -1092,16 +1095,20 @@ namespace DbMetal.Generator
             return _class;
         }
 
-        protected CodeTypeDeclaration GeneratePocoClass(Table table, Database database)
+        protected CodeTypeDeclaration GeneratePocoClass(Table table, Database database, bool addSerializableAttr)
         {
             var _class = new CodeTypeDeclaration()
             {
                 IsClass = true,
                 IsPartial = false,
                 Name = table.Type.Name + "Model",
-                TypeAttributes = TypeAttributes.Public,
-                CustomAttributes = { new CodeAttributeDeclaration("Serializable") }
+                TypeAttributes = TypeAttributes.Public                
             };
+
+            if(addSerializableAttr)
+            {
+                _class.CustomAttributes.Add(new CodeAttributeDeclaration("Serializable"));
+            }
 
             WriteCustomTypes(_class, table);
             foreach (Column column in table.Type.Columns)
