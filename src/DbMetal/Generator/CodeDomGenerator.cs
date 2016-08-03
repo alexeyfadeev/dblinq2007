@@ -43,6 +43,9 @@ using Microsoft.VisualBasic;
 using DbLinq.Schema.Dbml;
 using DbLinq.Schema.Dbml.Adapter;
 using DbLinq.Util;
+using DbLinq.Language;
+
+using DbMetal.Language;
 
 namespace DbMetal.Generator
 {
@@ -52,6 +55,7 @@ namespace DbMetal.Generator
     class CodeDomGenerator : ICodeGenerator
     {
         CodeDomProvider Provider { get; set; }
+        ILanguageWords LanguageWords { get; set; }
 
         // Provided only for Processor.EnumerateCodeGenerators().  DO NOT USE.
         public CodeDomGenerator()
@@ -69,6 +73,20 @@ namespace DbMetal.Generator
 
         public string Extension {
             get { return "*"; }
+        }
+
+        public void CheckLanguageWords(string cultureName)
+        {
+            if (LanguageWords != null) return;
+
+            if(cultureName.ToLower().Contains("fr"))
+                LanguageWords = new FrenchWords();
+            else if (cultureName.ToLower().Contains("de"))
+                LanguageWords = new GermanWords();
+            else
+                LanguageWords = new EnglishWords();
+
+            LanguageWords.Load();
         }
 
         public static CodeDomGenerator CreateFromFileExtension(string extension)
@@ -235,6 +253,8 @@ namespace DbMetal.Generator
 
         protected virtual CodeNamespace GenerateIContextDomModel(Database database)
         {
+            CheckLanguageWords(Context.Parameters.Culture);
+
             CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
 
             _namespace.Imports.Add(new CodeNamespaceImport("System"));
@@ -254,7 +274,7 @@ namespace DbMetal.Generator
                 var field = new CodeMemberProperty
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = table.Member + "s",
+                    Name = LanguageWords.Pluralize(table.Member),
                     Type = new CodeTypeReference("IQueryable", tableType),
                 };
                 field.HasGet = true;
@@ -295,6 +315,8 @@ namespace DbMetal.Generator
 
         protected virtual CodeNamespace GenerateContextProxyDomModel(Database database)
         {
+            CheckLanguageWords(Context.Parameters.Culture);
+
             CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
 
             _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
@@ -313,7 +335,7 @@ namespace DbMetal.Generator
                 var field = new CodeMemberProperty
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = table.Member + "s",
+                    Name = LanguageWords.Pluralize(table.Member),
                     Type = new CodeTypeReference("IQueryable", tableType),
                 };
                 field.HasGet = true;
