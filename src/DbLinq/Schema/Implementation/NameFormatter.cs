@@ -88,7 +88,7 @@ namespace DbLinq.Schema.Implementation
         /// </summary>
         /// <param name="cultureInfo">The culture info.</param>
         /// <returns></returns>
-        protected virtual ILanguageWords GetLanguageWords(CultureInfo cultureInfo)
+        public virtual ILanguageWords GetLanguageWords(CultureInfo cultureInfo)
         {
             lock (languageWords)
             {
@@ -291,7 +291,7 @@ namespace DbLinq.Schema.Implementation
         /// <param name="dbName">Name of the db.</param>
         /// <param name="extraction">The extraction type (case or language identification).</param>
         /// <returns></returns>
-        protected virtual IList<string> ExtractWords(ILanguageWords words, string dbName, WordsExtraction extraction)
+        public virtual IList<string> ExtractWords(ILanguageWords words, string dbName, WordsExtraction extraction)
         {
             switch (extraction)
             {

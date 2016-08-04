@@ -36,6 +36,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
@@ -44,6 +45,7 @@ using DbLinq.Schema.Dbml;
 using DbLinq.Schema.Dbml.Adapter;
 using DbLinq.Util;
 using DbLinq.Language;
+using DbLinq.Schema.Implementation;
 
 using DbMetal.Language;
 
@@ -56,15 +58,18 @@ namespace DbMetal.Generator
     {
         CodeDomProvider Provider { get; set; }
         ILanguageWords LanguageWords { get; set; }
+        NameFormatter NameFormatter { get; set; }
 
         // Provided only for Processor.EnumerateCodeGenerators().  DO NOT USE.
         public CodeDomGenerator()
         {
+            NameFormatter = new NameFormatter();
         }
 
         public CodeDomGenerator(CodeDomProvider provider)
         {
             this.Provider = provider;
+            NameFormatter = new NameFormatter();
         }
 
         public string LanguageCode {
@@ -77,16 +82,10 @@ namespace DbMetal.Generator
 
         public void CheckLanguageWords(string cultureName)
         {
-            if (LanguageWords != null) return;
-
-            if(cultureName.ToLower().Contains("fr"))
-                LanguageWords = new FrenchWords();
-            else if (cultureName.ToLower().Contains("de"))
-                LanguageWords = new GermanWords();
-            else
-                LanguageWords = new EnglishWords();
-
-            LanguageWords.Load();
+            if (LanguageWords == null)
+            {
+                LanguageWords = NameFormatter.GetLanguageWords(new CultureInfo(cultureName));
+            }
         }
 
         public static CodeDomGenerator CreateFromFileExtension(string extension)
@@ -251,6 +250,22 @@ namespace DbMetal.Generator
             return _namespace;
         }
 
+        protected string GetTableNamePluralized(string name)
+        {
+            var nameWords = NameFormatter.ExtractWords(LanguageWords, name, DbLinq.Schema.WordsExtraction.FromCase);
+            string pluralized = LanguageWords.Pluralize(nameWords.Last());
+
+            if(pluralized == nameWords.Last() && !pluralized.EndsWith("s"))
+            {
+                pluralized += "s";
+            }
+
+            nameWords.RemoveAt(nameWords.Count - 1);
+
+            string ret = string.Join("", nameWords.ToArray()) + pluralized;
+            return ret;
+        }
+
         protected virtual CodeNamespace GenerateIContextDomModel(Database database)
         {
             CheckLanguageWords(Context.Parameters.Culture);
@@ -274,7 +289,7 @@ namespace DbMetal.Generator
                 var field = new CodeMemberProperty
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = LanguageWords.Pluralize(table.Member),
+                    Name = GetTableNamePluralized(table.Member),
                     Type = new CodeTypeReference("IQueryable", tableType),
                 };
                 field.HasGet = true;
@@ -295,6 +310,24 @@ namespace DbMetal.Generator
                     ReturnType = voidTypeRef
                 };
                 method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, table.Member.ToLower()));
+
+                _interface.Members.Add(method);
+            }
+
+            foreach (Table table in database.Tables)
+            {
+                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
+                if (idColumn == null) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Get" + table.Member,
+                    ReturnType = tableType
+                };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
 
                 _interface.Members.Add(method);
             }
@@ -335,7 +368,7 @@ namespace DbMetal.Generator
                 var field = new CodeMemberProperty
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = LanguageWords.Pluralize(table.Member),
+                    Name = GetTableNamePluralized(table.Member),
                     Type = new CodeTypeReference("IQueryable", tableType),
                 };
                 field.HasGet = true;
@@ -347,6 +380,7 @@ namespace DbMetal.Generator
 
             var voidTypeRef = new CodeTypeReference(typeof(void));
 
+            // Add methods
             foreach (Table table in database.Tables)
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
@@ -361,10 +395,34 @@ namespace DbMetal.Generator
                 };
                 method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, paramName));
 
-                var prop = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), table.Member);
+                var prop = new CodeVariableReferenceExpression(table.Member);
                 method.Statements.Add(new CodeMethodInvokeExpression(prop, "InsertOnSubmit", new CodeVariableReferenceExpression(paramName)));
 
                 method.Statements.Add(new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "SubmitChanges"));
+
+                _class.Members.Add(method);
+            }
+
+            // Get methods (by id)
+            foreach (Table table in database.Tables)
+            {
+                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
+                if (idColumn == null) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Get" + table.Member,
+                    ReturnType = tableType
+                };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                var prop = new CodeVariableReferenceExpression(table.Member);
+                var statement = new CodeMethodInvokeExpression(prop, "FirstOrDefault", new CodeSnippetExpression(
+                    string.Format("x => x.{0} == id", idColumn.Member ?? idColumn.Name)));
+                method.Statements.Add(new CodeMethodReturnStatement(statement));
 
                 _class.Members.Add(method);
             }
