@@ -153,7 +153,8 @@ namespace DbLinq.Data.Linq
             var parts = command.CommandText.Split(new string[] { "FROM" }, StringSplitOptions.None);
             string sql = "DELETE FROM " + parts.Last();
 
-            provider.Context.ExecuteCommand(sql, command.Parameters);
+            command.CommandText = sql;
+            command.ExecuteScalar();
         }
     }
 }

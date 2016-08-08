@@ -332,6 +332,24 @@ namespace DbMetal.Generator
                 _interface.Members.Add(method);
             }
 
+            foreach (Table table in database.Tables)
+            {
+                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
+                if (idColumn == null) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Delete" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                _interface.Members.Add(method);
+            }
+
             var methodSubmit = new CodeMemberMethod()
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
@@ -353,6 +371,7 @@ namespace DbMetal.Generator
             CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
 
             _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+            _namespace.Imports.Add(new CodeNamespaceImport("DbLinq.Data.Linq"));
 
             var _class = new CodeTypeDeclaration(database.Class)
             {
@@ -423,6 +442,30 @@ namespace DbMetal.Generator
                 var statement = new CodeMethodInvokeExpression(prop, "FirstOrDefault", new CodeSnippetExpression(
                     string.Format("x => x.{0} == id", idColumn.Member ?? idColumn.Name)));
                 method.Statements.Add(new CodeMethodReturnStatement(statement));
+
+                _class.Members.Add(method);
+            }
+
+            // Delete methods (by id)
+            foreach (Table table in database.Tables)
+            {
+                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
+                if (idColumn == null) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Delete" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                var prop = new CodeVariableReferenceExpression(table.Member);
+                var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeSnippetExpression(
+                    string.Format("x => x.{0} == id", idColumn.Member ?? idColumn.Name)));
+                method.Statements.Add(new CodeMethodInvokeExpression(statement, "ExecuteDelete"));
 
                 _class.Members.Add(method);
             }
