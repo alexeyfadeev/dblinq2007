@@ -5,6 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
+using DbLinq.Data.Linq.Implementation;
+
 namespace DbLinq.Data.Linq
 {
     public static class Utils
@@ -141,6 +143,17 @@ namespace DbLinq.Data.Linq
         public static string ToTsVectorString(this List<string> tokens)
         {
             return ListToTsVectorString(tokens);
+        }
+
+        public static void ExecuteDelete<T>(this IQueryable<T> query)
+        {
+            var provider = query as IQueryProvider<T>;
+            var command = provider.Context.GetCommand(query);
+
+            var parts = command.CommandText.Split(new string[] { "FROM" }, StringSplitOptions.None);
+            string sql = "DELETE FROM " + parts.Last();
+
+            provider.Context.ExecuteCommand(sql, command.Parameters);
         }
     }
 }
