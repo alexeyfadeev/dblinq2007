@@ -309,15 +309,15 @@ namespace DbMetal.Generator
                     Name = "Add" + table.Member,
                     ReturnType = voidTypeRef
                 };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, table.Member.ToLower()));
+                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, GetLowerCamelCase(table.Member)));
 
                 _interface.Members.Add(method);
             }
 
             foreach (Table table in database.Tables)
             {
-                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
-                if (idColumn == null) continue;
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                if (!pkColumns.Any()) continue;
 
                 var tableType = new CodeTypeReference(table.Type.Name);
 
@@ -327,15 +327,19 @@ namespace DbMetal.Generator
                     Name = "Get" + table.Member,
                     ReturnType = tableType
                 };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
 
                 _interface.Members.Add(method);
             }
 
             foreach (Table table in database.Tables)
             {
-                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
-                if (idColumn == null) continue;
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                if (!pkColumns.Any()) continue;
 
                 var tableType = new CodeTypeReference(table.Type.Name);
 
@@ -345,7 +349,11 @@ namespace DbMetal.Generator
                     Name = "Delete" + table.Member,
                     ReturnType = voidTypeRef
                 };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
 
                 _interface.Members.Add(method);
             }
@@ -404,7 +412,7 @@ namespace DbMetal.Generator
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
 
-                string paramName = char.ToLowerInvariant(table.Member[0]) + table.Member.Substring(1);
+                string paramName = GetLowerCamelCase(table.Member);
 
                 var method = new CodeMemberMethod()
                 {
@@ -412,7 +420,7 @@ namespace DbMetal.Generator
                     Name = "Add" + table.Member,
                     ReturnType = voidTypeRef
                 };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, paramName));
+                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, GetLowerCamelCase(table.Member)));
 
                 var prop = new CodeVariableReferenceExpression(table.Member);
                 method.Statements.Add(new CodeMethodInvokeExpression(prop, "InsertOnSubmit", new CodeVariableReferenceExpression(paramName)));
@@ -422,11 +430,11 @@ namespace DbMetal.Generator
                 _class.Members.Add(method);
             }
 
-            // Get methods (by id)
+            // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
-                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
-                if (idColumn == null) continue;
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                if (!pkColumns.Any()) continue;
 
                 var tableType = new CodeTypeReference(table.Type.Name);
 
@@ -436,21 +444,26 @@ namespace DbMetal.Generator
                     Name = "Get" + table.Member,
                     ReturnType = tableType
                 };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
 
                 var prop = new CodeVariableReferenceExpression(table.Member);
                 var statement = new CodeMethodInvokeExpression(prop, "FirstOrDefault", new CodeSnippetExpression(
-                    string.Format("x => x.{0} == id", idColumn.Member ?? idColumn.Name)));
+                    "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " + 
+                    GetStorageFieldName(c).Replace("_", "")).ToArray())));
                 method.Statements.Add(new CodeMethodReturnStatement(statement));
 
                 _class.Members.Add(method);
             }
 
-            // Delete methods (by id)
+            // Delete methods (by PK)
             foreach (Table table in database.Tables)
             {
-                var idColumn = table.Type.Columns.Where(col => (col.Member ?? col.Name).ToLower() == "id").FirstOrDefault();
-                if (idColumn == null) continue;
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                if (!pkColumns.Any()) continue;
 
                 var tableType = new CodeTypeReference(table.Type.Name);
 
@@ -460,11 +473,16 @@ namespace DbMetal.Generator
                     Name = "Delete" + table.Member,
                     ReturnType = voidTypeRef
                 };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(idColumn), "id"));
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
 
                 var prop = new CodeVariableReferenceExpression(table.Member);
                 var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeSnippetExpression(
-                    string.Format("x => x.{0} == id", idColumn.Member ?? idColumn.Name)));
+                    "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " + 
+                    GetStorageFieldName(c).Replace("_", "")).ToArray())));
                 method.Statements.Add(new CodeMethodInvokeExpression(statement, "ExecuteDelete"));
 
                 _class.Members.Add(method);
@@ -1431,6 +1449,11 @@ namespace DbMetal.Generator
             if (storage.StartsWith("_"))
                 return storage;
             return "_" + storage;
+        }
+
+        static string GetLowerCamelCase(string str)
+        {
+            return char.ToLowerInvariant(str[0]) + str.Substring(1);
         }
 
         private void GenerateINotifyPropertyChanging(CodeTypeDeclaration entity)
