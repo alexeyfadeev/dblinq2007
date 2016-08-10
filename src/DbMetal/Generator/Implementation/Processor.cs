@@ -248,7 +248,7 @@ namespace DbMetal.Generator.Implementation
                     File.WriteAllText(pocoFileName, text);
                 }
 
-                // Generate IContext models into separate file, if it's needed
+                // Generate IContext, ContextProxy, MockContext into separate files, if it's needed
                 if (parameters.IContext && codeGenerator is CodeDomGenerator && filename.Contains('.'))
                 {
                     string interfaceFileName = Path.Combine(Path.GetDirectoryName(filename), "I" + Path.GetFileName(filename));
@@ -259,7 +259,7 @@ namespace DbMetal.Generator.Implementation
                         ((CodeDomGenerator)codeGenerator).WriteIContext(streamWriterIContext, dbSchema, generationContext);
                     }
 
-
+                    
                     string proxyFileName = Path.Combine(Path.GetDirectoryName(filename),
                         Path.GetFileNameWithoutExtension(filename) + "Proxy.cs");
 
@@ -268,6 +268,17 @@ namespace DbMetal.Generator.Implementation
                     using (var streamWriterContextProxy = new StreamWriter(proxyFileName))
                     {
                         ((CodeDomGenerator)codeGenerator).WriteContextProxy(streamWriterContextProxy, dbSchema, generationContext);
+                    }
+
+
+                    string mockFileName = Path.Combine(Path.GetDirectoryName(filename),
+                        "Mock" + Path.GetFileName(filename));
+
+                    parameters.Write("<<< writing MockContext into file '{0}'", mockFileName);
+
+                    using (var streamWriterMockContext = new StreamWriter(mockFileName))
+                    {
+                        ((CodeDomGenerator)codeGenerator).WriteMockContext(streamWriterMockContext, dbSchema, generationContext);
                     }
                 }
             }
