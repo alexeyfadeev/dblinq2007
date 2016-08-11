@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Data.Common;
 
 using DbLinq.Data.Linq.Implementation;
+using DbLinq.Data.Linq.Identity;
 
 namespace DbLinq.Data.Linq
 {
@@ -145,16 +147,42 @@ namespace DbLinq.Data.Linq
             return ListToTsVectorString(tokens);
         }
 
-        public static void ExecuteDelete<T>(this IQueryable<T> query)
+        private static void ExecuteDeleteCommand(DbCommand command)
         {
-            var provider = query as IQueryProvider<T>;
-            var command = provider.Context.GetCommand(query);
-
             var parts = command.CommandText.Split(new string[] { "FROM" }, StringSplitOptions.None);
             string sql = "DELETE FROM " + parts.Last();
 
             command.CommandText = sql;
             command.ExecuteScalar();
+        }
+
+        /// <summary>
+        /// Delete entities selected by LINQ-query
+        /// </summary>
+        /// <typeparam name="T">Table type</typeparam>
+        /// <param name="query"></param>
+        public static void ExecuteDelete<T>(this IQueryable<T> query)
+        {
+            var provider = query as IQueryProvider<T>;
+            var command = provider.Context.GetCommand(query);
+
+            ExecuteDeleteCommand(command);
+        }
+
+        /// <summary>
+        /// Delete entities, lambda-expression should contain only primary key fields in right order
+        /// </summary>
+        /// <typeparam name="T">Table type</typeparam>
+        /// <param name="query"></param>
+        public static void ExecuteDeleteByPK<T>(this IQueryable<T> query)
+        {
+            var provider = query as IQueryProvider<T>;
+            var command = provider.Context.GetCommand(query);
+
+            ExecuteDeleteCommand(command);
+
+            var identityKey = new IdentityKey(typeof(T), command.Parameters.Cast<DbParameter>().Select(p => p.Value));
+            provider.Context.RegisterEntityAsDeleted(identityKey);
         }
     }
 }

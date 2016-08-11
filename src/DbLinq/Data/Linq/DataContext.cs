@@ -1272,6 +1272,11 @@ namespace DbLinq.Data.Linq
             );
         }
 
+        internal void RegisterEntityAsDeleted(IdentityKey identityKey)
+        {
+            AllTrackedEntities.RegisterAsDeletedByIdentityKey(identityKey);
+        }
+
         [DbLinqToDo]
         public void Refresh(RefreshMode mode, IEnumerable entities)
         {

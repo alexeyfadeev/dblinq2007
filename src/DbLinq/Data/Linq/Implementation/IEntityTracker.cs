@@ -77,6 +77,12 @@ namespace DbLinq.Data.Linq.Implementation
         void RegisterDeleted(object entity);
 
         /// <summary>
+        /// Unregisters the entity by key
+        /// </summary>
+        /// <param name="identityKey"></param>
+        void RegisterAsDeletedByIdentityKey(IdentityKey identityKey);
+
+        /// <summary>
         /// Enumerates all registered entities
         /// </summary>
         /// <returns></returns>

@@ -217,6 +217,21 @@ namespace DbLinq.Data.Linq.Implementation
         }
 
         /// <summary>
+        /// Unregisters the entity by key
+        /// </summary>
+        /// <param name="identityKey"></param>
+        public void RegisterAsDeletedByIdentityKey(IdentityKey identityKey)
+        {
+            var entityTrack = FindByIdentity(identityKey);
+            if(entityTrack != null)
+            {
+                entities.Remove(entityTrack);
+                entityTrack.EntityState = EntityState.ToDelete;
+                entitiesByKey.Remove(entityTrack.IdentityKey);
+            }
+        }
+
+        /// <summary>
         /// Enumerates all registered entities
         /// </summary>
         /// <returns></returns>
