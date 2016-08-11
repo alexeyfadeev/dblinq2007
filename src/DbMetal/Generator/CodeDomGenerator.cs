@@ -496,7 +496,7 @@ namespace DbMetal.Generator
                 var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeSnippetExpression(
                     "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " + 
                     GetStorageFieldName(c).Replace("_", "")).ToArray())));
-                method.Statements.Add(new CodeMethodInvokeExpression(statement, "ExecuteDelete"));
+                method.Statements.Add(new CodeMethodInvokeExpression(statement, "ExecuteDeleteByPK"));
 
                 _class.Members.Add(method);
             }
