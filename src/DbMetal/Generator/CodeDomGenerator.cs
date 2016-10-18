@@ -162,6 +162,19 @@ namespace DbMetal.Generator
                 });
         }
 
+        public void WriteMapper(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                GenerateMapperDomModel(dbSchema), textWriter,
+                new CodeGeneratorOptions()
+                {
+                    BracingStyle = "C",
+                    IndentString = "\t",
+                });
+        }
+
         static void Warning(string format, params object[] args)
         {
             Console.Error.Write(Path.GetFileName(Environment.GetCommandLineArgs()[0]));
@@ -699,6 +712,60 @@ namespace DbMetal.Generator
                 ReturnType = voidTypeRef
             };
             _class.Members.Add(methodDispose);
+
+            _namespace.Types.Add(_class);
+
+            return _namespace;
+        }
+
+        protected virtual CodeNamespace GenerateMapperDomModel(Database database)
+        {
+            CheckLanguageWords(Context.Parameters.Culture);
+
+            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            _namespace.Imports.Add(new CodeNamespaceImport("AutoMapper"));
+
+            var _class = new CodeTypeDeclaration(database.Class + "Mapper")
+            {
+                IsClass = true,
+                IsPartial = true
+            };
+
+            var method = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final | MemberAttributes.Static,
+                Name = "Initialize",
+                ReturnType = new CodeTypeReference(typeof(void))
+            };
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+                var pocoType = new CodeTypeReference(table.Type.Name + "Model");
+
+                method.Statements.Add(new CodeMethodInvokeExpression(new CodeMethodReferenceExpression(
+                    new CodeTypeReferenceExpression("Mapper"), "CreateMap", tableType, pocoType)));
+
+                method.Statements.Add(new CodeMethodInvokeExpression(new CodeMethodReferenceExpression(
+                    new CodeTypeReferenceExpression("Mapper"), "CreateMap", pocoType, tableType)));                
+            }
+
+            _class.Members.Add(method);
+
+
+            var mapMethod = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "Map",
+                ReturnType = new CodeTypeReference("T"),
+                Parameters = { new CodeParameterDeclarationExpression(typeof(object), "source") }
+            };
+            mapMethod.TypeParameters.Add(new CodeTypeParameter("T"));
+            mapMethod.Statements.Add(new CodeMethodReturnStatement(new CodeSnippetExpression("(T)Mapper.Map(source, source.GetType(), typeof(T))")));
+
+            _class.Members.Add(mapMethod);
+
 
             _namespace.Types.Add(_class);
 

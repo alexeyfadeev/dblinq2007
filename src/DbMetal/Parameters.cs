@@ -215,6 +215,11 @@ namespace DbMetal
         /// </summary>
         public bool IContext { get; set; }
 
+        /// <summary>
+        /// Generate code for auto-mapping
+        /// </summary>
+        public bool Mapper { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
@@ -354,6 +359,9 @@ namespace DbMetal
                 { "icontext",
                   "Enables IContext and ContextProxy generating",
                   v => IContext = v != null },
+                { "mapper",
+                  "Enables mapper code generating. Works only when POCO option enabled",
+                  v => Mapper = v != null },
             };
 
             Extra = Options.Parse(args);

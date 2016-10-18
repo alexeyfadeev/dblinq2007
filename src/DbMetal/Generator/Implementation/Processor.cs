@@ -246,6 +246,20 @@ namespace DbMetal.Generator.Implementation
                     string text = File.ReadAllText(pocoFileName);
                     text = text.Replace("{ get; set; };", "{ get; set; }");
                     File.WriteAllText(pocoFileName, text);
+
+                    
+                    // Generate mapper code
+                    if(parameters.Mapper)
+                    {
+                        string mapperFileName = Path.Combine(Path.GetDirectoryName(filename),
+                            Path.GetFileNameWithoutExtension(filename) + "Mapper.cs");
+                        parameters.Write("<<< writing Mapper-code into file '{0}'", mapperFileName);
+
+                        using (var streamWriterMapper = new StreamWriter(mapperFileName))
+                        {
+                            ((CodeDomGenerator)codeGenerator).WriteMapper(streamWriterMapper, dbSchema, generationContext);
+                        }
+                    }
                 }
 
                 // Generate IContext, ContextProxy, MockContext into separate files, if it's needed
