@@ -989,10 +989,10 @@ namespace DbLinq.Data.Linq
         /// <summary>
         /// use ExecuteCommandRaw to call raw unfiltered SQL (unsafe!)
         /// </summary>
-        public int ExecuteCommandRaw(string command)
+        public int ExecuteCommandRaw(string command, bool createTransaction)
         {
             var directQuery = new DirectQuery(this, command, new List<string>());
-            return QueryRunner.Execute(directQuery, new object[0]);
+            return createTransaction ? QueryRunner.ExecuteCreateTransaction(directQuery, new object[0]) : QueryRunner.Execute(directQuery, new object[0]);
         }
 
         /// <summary>

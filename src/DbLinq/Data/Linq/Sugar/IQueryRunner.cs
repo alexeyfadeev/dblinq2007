@@ -89,6 +89,14 @@ namespace DbLinq.Data.Linq.Sugar
         int Execute(DirectQuery directQuery, params object[] parameters);
 
         /// <summary>
+        /// Runs a direct scalar command with transaction opening
+        /// </summary>
+        /// <param name="directQuery"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        int ExecuteCreateTransaction(DirectQuery directQuery, params object[] parameters);
+
+        /// <summary>
         /// Runs a query with a direct statement
         /// </summary>
         /// <param name="tableType"></param>

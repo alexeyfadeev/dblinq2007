@@ -58,6 +58,13 @@ namespace DbLinq.Data.Linq.Sugar
             return command;
         }
 
+        public ITransactionalCommand GetTransactionalCommand()
+        {
+            ITransactionalCommand command = base.GetCommand(true);
+            FeedParameters(command);
+            return command;
+        }
+
         /// <summary>
         /// Fills dbCommand parameters, given names and values
         /// </summary>

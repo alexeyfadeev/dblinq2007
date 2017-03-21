@@ -333,6 +333,30 @@ namespace DbLinq.Data.Linq.Sugar.Implementation
             }
         }
 
+        /// <summary>
+        /// Runs a direct scalar command with transaction opening
+        /// </summary>
+        /// <param name="directQuery"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public int ExecuteCreateTransaction(DirectQuery directQuery, params object[] parameters)
+        {
+            directQuery.parameterValues = parameters;
+            var dbCommand = directQuery.GetTransactionalCommand();
+
+            // log command
+            directQuery.DataContext.WriteLog(dbCommand.Command);
+
+            var result = dbCommand.Command.ExecuteScalar();
+            if (result == null || result is DBNull)
+                return 0;
+            var intResult = TypeConvert.ToNumber<int>(result);
+
+            dbCommand.Command.Dispose();
+
+            return intResult;            
+        }
+
         // TODO: move method?
         protected virtual Delegate GetTableBuilder(Type elementType, IDataReader dataReader, DataContext dataContext)
         {

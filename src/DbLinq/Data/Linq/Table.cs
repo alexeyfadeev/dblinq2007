@@ -192,15 +192,20 @@ namespace DbLinq.Data.Linq
 
         public void ExecuteFastInsert<TSubEntity>(IEnumerable<TSubEntity> entities) where TSubEntity : IInsertSqlEntity
         {
+            ExecuteFastInsert(entities, false, "");
+        }
+
+        public void ExecuteFastInsert<TSubEntity>(IEnumerable<TSubEntity> entities, bool createTransaction, string onConflict) where TSubEntity : IInsertSqlEntity
+        {
             if (!entities.Any()) return;
 
             var queryContext = new QueryContext(Context);
             var query = Context.QueryBuilder.GetInsertQuery(entities.First(), queryContext);
             string sqlInsert = query.Sql.ToString().Split(new string[] { "VALUES" }, StringSplitOptions.None).First();
             string sqlValues = string.Join(", ", entities.Select(x => x.InsertSql).ToArray());
-            string sql = string.Format("{0}VALUES {1};", sqlInsert, sqlValues);
+            string sql = string.Format("{0}VALUES {1} {2};", sqlInsert, sqlValues, onConflict);
 
-            Context.ExecuteCommandRaw(sql);
+            Context.ExecuteCommandRaw(sql, createTransaction);
         }
 
         #endregion
