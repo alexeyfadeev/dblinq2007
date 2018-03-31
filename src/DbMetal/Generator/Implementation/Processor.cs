@@ -358,6 +358,8 @@ namespace DbMetal.Generator.Implementation
 
             text = text.Replace(";\r\n\t\r\n\t", ";\r\n\t");
             text = text.Replace("{\r\n\t\t\r\n\t\t", "{\r\n\t\t");
+            text = text.Replace(";\r\n\t\t\t\tif ", ";\r\n\t\t\t\t\r\n\t\t\t\tif ");
+            text = text.Replace("}\r\n\t\t\t\tsb ", "}\r\n\t\t\t\t\r\n\t\t\t\tsb ");
             text = text.Replace("\t", "    ");
 
             File.WriteAllText(filePath, text);

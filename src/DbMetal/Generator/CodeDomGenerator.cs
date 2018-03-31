@@ -1704,7 +1704,28 @@ namespace DbMetal.Generator
 
             this.WriteCustomTypes(cls, table);
 
+            // For InsertSql Property
+            if (this.Context.Parameters.FastInsert)
+            {
+                cls.BaseTypes.Add("IInsertSqlEntity");
+            }
+
             var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+
+            // InsertSql Property for using in ExecuteFastInsert method
+            var sbDeclare = new CodeVariableDeclarationStatement(new CodeTypeReference(typeof(StringBuilder)), "sb", new CodeObjectCreateExpression(typeof(System.Text.StringBuilder), new CodeExpression[] { }));
+            var sbReference = new CodeVariableReferenceExpression("sb");
+            var propertyInsert = new CodeMemberProperty();
+            propertyInsert.Type = new CodeTypeReference(typeof(string));
+            propertyInsert.Name = "InsertSql";
+            propertyInsert.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+            propertyInsert.HasGet = true;
+            propertyInsert.GetStatements.Add(sbDeclare);
+            propertyInsert.GetStatements.Add(AddTextExpressionToSb("(", sbReference));
+
+            bool firstColumn = true;
+            var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
+                                                           typeof(float), typeof(double), typeof(decimal), typeof(bool), typeof(List<string>) };
 
             foreach (Column column in table.Type.Columns)
             {
@@ -1766,7 +1787,170 @@ namespace DbMetal.Generator
 
                     cls.Members.Add(fieldRel);
                 }
-            }            
+
+                // Add to InsertSql Property
+                if (this.Context.Parameters.FastInsert)
+                {
+                    var t = System.Type.GetType(column.Type);
+                    bool isNumericType = numericTypes.Contains(t);
+
+                    if (!firstColumn)
+                    {
+                        propertyInsert.GetStatements.Add(AddTextExpressionToSb(", ", sbReference));
+                    }
+
+                    var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);
+
+                    var addColumnField = new Func<List<CodeStatement>>(() =>
+                        {
+                            var codeStatementList = new List<CodeStatement>();
+
+                            if (!isNumericType)
+                            {
+                                codeStatementList.Add(AddTextExpressionToSb("'", sbReference));
+                            }
+
+                            string toStringMethodName = "ToString";
+                            if (typeof(IDictionary).IsAssignableFrom(t))
+                            {
+                                toStringMethodName = "ToHStoreString";
+                            }
+                            else if (t != typeof(string) && typeof(IEnumerable).IsAssignableFrom(t))
+                            {
+                                toStringMethodName = "ToArrayString";
+                            }
+                            else if (t == typeof(List<string>))
+                            {
+                                toStringMethodName = "ToTsVectorString";
+                            }
+
+                            CodeMethodInvokeExpression toStringInvoke;
+                            if (t.IsValueType && column.CanBeNull)
+                            {
+                                var valueProp = new CodePropertyReferenceExpression(columnProperty, "Value");
+                                toStringInvoke = new CodeMethodInvokeExpression(valueProp, toStringMethodName);
+                            }
+                            else
+                            {
+                                toStringInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
+                            }
+
+                            if (t == typeof(DateTime))
+                            {
+                                toStringInvoke.Parameters.Add(new CodePrimitiveExpression("yyyy.MM.dd HH:mm:ss.fffffff"));
+                            }
+                            else if (t == typeof(bool))
+                            {
+                                toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "ToUpper");
+                            }
+                            else if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
+                            {
+                                toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "Replace");
+                                toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
+                                toStringInvoke.Parameters.Add(new CodePrimitiveExpression('.'));
+                            }
+
+                            if (!isNumericType && t != typeof(DateTime))
+                            {
+                                // Processing quotes
+                                var expession = (t == typeof(string)) 
+                                    ? (CodeExpression)columnProperty 
+                                    : toStringInvoke;
+
+                                toStringInvoke = new CodeMethodInvokeExpression(expession, "Replace");
+                                toStringInvoke.Parameters.Add(new CodePrimitiveExpression("'"));
+                                toStringInvoke.Parameters.Add(new CodePrimitiveExpression("''"));
+                            }
+
+                            codeStatementList.Add(AddExpressionToSb(toStringInvoke, sbReference));
+
+                            if (!isNumericType)
+                            {
+                                codeStatementList.Add(AddTextExpressionToSb("'", sbReference));
+                            }
+
+                            // For reference types: if/else statement and null assigment
+                            if (t.IsClass)
+                            {
+                                var codeStatements = codeStatementList.ToArray();
+
+                                var inequality = new CodeBinaryOperatorExpression(columnProperty,
+                                    CodeBinaryOperatorType.IdentityInequality, new CodePrimitiveExpression(null));
+
+                                var ifCondition = new CodeConditionStatement(inequality, codeStatements,
+                                    new CodeStatement[] { AddTextExpressionToSb("null", sbReference) });
+
+                                return new List<CodeStatement>() { ifCondition };
+                            }
+                            else if (column.CanBeNull)
+                            {
+                                var codeStatements = codeStatementList.ToArray();
+
+                                var hasValue = new CodePropertyReferenceExpression(columnProperty, "HasValue");
+
+                                var ifCondition = new CodeConditionStatement(hasValue, codeStatements,
+                                    new CodeStatement[] { AddTextExpressionToSb("null", sbReference) });
+
+                                return new List<CodeStatement>() { ifCondition };
+                            }
+                            else
+                            {
+                                return codeStatementList;
+                            }
+                        });
+
+                    if (!string.IsNullOrEmpty(column.Expression))
+                    {
+                        if (isNumericType)
+                        {
+                            var codeStatementList = addColumnField().ToArray();
+
+                            var inequality = new CodeBinaryOperatorExpression(columnProperty,
+                                CodeBinaryOperatorType.GreaterThan, new CodePrimitiveExpression(0));
+
+                            var ifCondition = new CodeConditionStatement(inequality, codeStatementList,
+                                new CodeStatement[] { AddTextExpressionToSb(column.Expression, sbReference) });
+
+                            propertyInsert.GetStatements.Add(ifCondition);
+                        }
+                        else
+                        {
+                            propertyInsert.GetStatements.Add(AddTextExpressionToSb(column.Expression, sbReference));
+                        }
+                    }
+                    else
+                    {
+                        addColumnField().ForEach(x => propertyInsert.GetStatements.Add(x));
+                    }
+
+                    firstColumn = false;
+                }
+            }
+
+            if (Context.Parameters.FastInsert)
+            {
+                propertyInsert.GetStatements.Add(AddTextExpressionToSb(")", sbReference));
+
+                var sbToStringInvoke = new CodeMethodInvokeExpression(sbReference, "ToString");
+
+                propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
+
+                propertyInsert.Comments.Add(new CodeCommentStatement($"<summary> Insert Sql </summary>", true));
+
+                cls.Members.Add(propertyInsert);
+
+                var commonInsField = new CodeMemberField(typeof(string), "CommonInsertSql")
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final
+                };
+
+                commonInsField.Comments.Add(new CodeCommentStatement($"<summary> Common insert Sql </summary>", true));
+
+                var tableCols = string.Join(", ", table.Type.Columns.Select(x => x.Name).ToArray());
+                commonInsField.Name += $" => \"INSERT INTO {table.Name} ({tableCols}) VALUES \"";
+
+                cls.Members.Add(commonInsField);
+            }
 
             return cls;
         }
