@@ -123,6 +123,32 @@ namespace DbMetal.Generator
                 });
         }
 
+        public void WriteEf(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                GenerateEfDomModel(dbSchema), textWriter,
+                new CodeGeneratorOptions()
+                    {
+                        BracingStyle = "C",
+                        IndentString = "\t",
+                    });
+        }
+
+        public void WriteEfContext(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                GenerateEfContextDomModel(dbSchema), textWriter,
+                new CodeGeneratorOptions()
+                    {
+                        BracingStyle = "C",
+                        IndentString = "\t",
+                    });
+        }
+
         public void WriteIContext(TextWriter textWriter, Database dbSchema, GenerationContext context)
         {
             Context = context;
@@ -276,6 +302,181 @@ namespace DbMetal.Generator
             return _namespace;
         }
 
+        protected virtual CodeNamespace GenerateEfDomModel(Database database)
+        {
+            CodeNamespace nameSpace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations.Schema"));
+
+            foreach (Table table in database.Tables)
+            {
+                nameSpace.Types.Add(this.GenerateEfClass(table, database));
+            }
+
+            return nameSpace;
+        }
+
+        protected virtual CodeNamespace GenerateIContextDomModel(Database database)
+        {
+            CheckLanguageWords(Context.Parameters.Culture);
+
+            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            _namespace.Imports.Add(new CodeNamespaceImport("System"));
+            _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+
+            var _interface = new CodeTypeDeclaration("I" + database.Class)
+                                 {
+                                     IsInterface = true,
+                                     IsPartial = true
+                                 };
+            _interface.BaseTypes.Add(new CodeTypeReference("IDisposable"));
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var field = new CodeMemberProperty
+                                {
+                                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                    Name = GetTableNamePluralized(table.Member),
+                                    Type = new CodeTypeReference("IQueryable", tableType),
+                                };
+                field.HasGet = true;
+
+                _interface.Members.Add(field);
+            }
+
+            var voidTypeRef = new CodeTypeReference(typeof(void));
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                                 {
+                                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                     Name = "Add" + table.Member,
+                                     ReturnType = voidTypeRef
+                                 };
+                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, GetLowerCamelCase(table.Member)));
+
+                _interface.Members.Add(method);
+            }
+
+            foreach (Table table in database.Tables)
+            {
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                if (!pkColumns.Any()) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                                 {
+                                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                     Name = "Get" + table.Member,
+                                     ReturnType = tableType
+                                 };
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
+
+                _interface.Members.Add(method);
+            }
+
+            foreach (Table table in database.Tables)
+            {
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                if (!pkColumns.Any()) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                                 {
+                                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                     Name = "Delete" + table.Member,
+                                     ReturnType = voidTypeRef
+                                 };
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
+
+                _interface.Members.Add(method);
+            }
+
+            var methodSubmit = new CodeMemberMethod()
+                                   {
+                                       Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                       Name = "SubmitChanges",
+                                       ReturnType = voidTypeRef
+                                   };
+
+            _interface.Members.Add(methodSubmit);
+
+            _namespace.Types.Add(_interface);
+
+            return _namespace;
+        }
+
+        protected virtual CodeNamespace GenerateEfContextDomModel(Database database)
+        {
+            this.CheckLanguageWords(this.Context.Parameters.Culture);
+
+            CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Data.Entity"));
+
+            var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "EfContext"))
+                          {
+                              IsPartial = true,
+                              Attributes = MemberAttributes.Public | MemberAttributes.Final
+                          };
+
+            cls.Comments.Add(new CodeCommentStatement("<summary> Database context </summary>", true));
+
+            cls.BaseTypes.Add(new CodeTypeReference("DbContext"));
+
+            // Constructors
+            var constructor = new CodeConstructor
+            {
+                Attributes = MemberAttributes.Public,
+                Parameters = { new CodeParameterDeclarationExpression(typeof(string), "connectionString") },
+            };
+
+            constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("connectionString"));
+            constructor.Comments.Add(new CodeCommentStatement("<summary> Database context constructor </summary>", true));
+            cls.Members.Add(constructor);
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                string name = GetTableNamePluralized(table.Member);
+
+                var field = new CodeMemberField
+                                {
+                                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                    Name = name,
+                                    Type = new CodeTypeReference("DbSet", tableType),
+                                };
+
+                field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
+
+                field.Name += " { get; set; }";
+
+                cls.Members.Add(field);
+            }
+
+            nameSpace.Types.Add(cls);
+
+            return nameSpace;
+        }
+
         protected string GetTableNamePluralized(string name)
         {
             var nameWords = NameFormatter.ExtractWords(LanguageWords, name, DbLinq.Schema.WordsExtraction.FromCase);
@@ -290,112 +491,6 @@ namespace DbMetal.Generator
 
             string ret = string.Join("", nameWords.ToArray()) + pluralized;
             return ret;
-        }
-
-        protected virtual CodeNamespace GenerateIContextDomModel(Database database)
-        {
-            CheckLanguageWords(Context.Parameters.Culture);
-
-            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
-
-            _namespace.Imports.Add(new CodeNamespaceImport("System"));
-            _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-
-            var _interface = new CodeTypeDeclaration("I" + database.Class)
-            {
-                IsInterface = true,
-                IsPartial = true
-            };
-            _interface.BaseTypes.Add(new CodeTypeReference("IDisposable"));
-
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                var field = new CodeMemberProperty
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = GetTableNamePluralized(table.Member),
-                    Type = new CodeTypeReference("IQueryable", tableType),
-                };
-                field.HasGet = true;
-
-                _interface.Members.Add(field);
-            }
-
-            var voidTypeRef = new CodeTypeReference(typeof(void));
-
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                var method = new CodeMemberMethod()
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "Add" + table.Member,
-                    ReturnType = voidTypeRef
-                };
-                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, GetLowerCamelCase(table.Member)));
-
-                _interface.Members.Add(method);
-            }
-
-            foreach (Table table in database.Tables)
-            {
-                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-                if (!pkColumns.Any()) continue;
-
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                var method = new CodeMemberMethod()
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "Get" + table.Member,
-                    ReturnType = tableType
-                };
-
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
-                }
-
-                _interface.Members.Add(method);
-            }
-
-            foreach (Table table in database.Tables)
-            {
-                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-                if (!pkColumns.Any()) continue;
-
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                var method = new CodeMemberMethod()
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "Delete" + table.Member,
-                    ReturnType = voidTypeRef
-                };
-
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
-                }
-
-                _interface.Members.Add(method);
-            }
-
-            var methodSubmit = new CodeMemberMethod()
-            {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                Name = "SubmitChanges",
-                ReturnType = voidTypeRef
-            };
-
-            _interface.Members.Add(methodSubmit);
-
-            _namespace.Types.Add(_interface);
-
-            return _namespace;
         }
 
         protected virtual CodeNamespace GenerateContextProxyDomModel(Database database)
@@ -1226,10 +1321,17 @@ namespace DbMetal.Generator
             return p;
         }
 
-        protected CodeAssignStatement AddTextExpression(string text, CodeExpression stringReference)
+        protected CodeAssignStatement AddExpressionToSb(CodeExpression expression, CodeExpression sbReference)
         {
-            return new CodeAssignStatement(stringReference, new CodeBinaryOperatorExpression(stringReference, 
-                CodeBinaryOperatorType.Add, new CodePrimitiveExpression(text)));
+            var sbAppendInvoke = new CodeMethodInvokeExpression(sbReference, "Append");
+            sbAppendInvoke.Parameters.Add(expression);
+
+            return new CodeAssignStatement(sbReference, sbAppendInvoke);
+        }
+
+        protected CodeAssignStatement AddTextExpressionToSb(string text, CodeExpression sbReference)
+        {
+            return AddExpressionToSb(new CodePrimitiveExpression(text), sbReference);
         }
 
         protected CodeTypeDeclaration GenerateTableClass(Table table, Database database)
@@ -1294,16 +1396,15 @@ namespace DbMetal.Generator
             //partial void OnValidate(System.Data.Linq.ChangeAction action);
 
             // InsertSql Property for using in ExecuteFastInsert method
-            var stringCreate = new CodePrimitiveExpression("");
-            var stringDeclare = new CodeVariableDeclarationStatement(new CodeTypeReference(typeof(string)), "insertString", stringCreate);
-            var stringReference = new CodeVariableReferenceExpression("insertString");
+            var sbDeclare = new CodeVariableDeclarationStatement(new CodeTypeReference(typeof(StringBuilder)), "sb", new CodeObjectCreateExpression(typeof(System.Text.StringBuilder), new CodeExpression[] { }));
+            var sbReference = new CodeVariableReferenceExpression("sb");
             var propertyInsert = new CodeMemberProperty();
             propertyInsert.Type = new CodeTypeReference(typeof(string));
             propertyInsert.Name = "InsertSql";
             propertyInsert.Attributes = MemberAttributes.Public | MemberAttributes.Final;
             propertyInsert.HasGet = true;
-            propertyInsert.GetStatements.Add(stringDeclare);
-            propertyInsert.GetStatements.Add(AddTextExpression("(", stringReference));
+            propertyInsert.GetStatements.Add(sbDeclare);
+            propertyInsert.GetStatements.Add(AddTextExpressionToSb("(", sbReference));
 
             bool firstColumn = true;
             var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
@@ -1391,43 +1492,39 @@ namespace DbMetal.Generator
 
                 // Add to InsertSql Property
                 if (Context.Parameters.FastInsert)
-                {
+                {                    
                     var t = System.Type.GetType(column.Type);
                     bool isNumericType = numericTypes.Contains(t);
 
                     if (!firstColumn)
                     {
-                        propertyInsert.GetStatements.Add(AddTextExpression(", ", stringReference));
+                        propertyInsert.GetStatements.Add(AddTextExpressionToSb(", ", sbReference));
                     }
 
-                    if (!string.IsNullOrEmpty(column.Expression))
+                    var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);
+
+                    var addColumnField = new Func<List<CodeStatement>>(() =>
                     {
-                        propertyInsert.GetStatements.Add(AddTextExpression(column.Expression, stringReference));
-                    }
-                    else
-                    {
-                        var CodeStatementList = new List<CodeStatement>();
+                        var codeStatementList = new List<CodeStatement>();
 
                         if (!isNumericType)
                         {
-                            CodeStatementList.Add(AddTextExpression("'", stringReference));
+                            codeStatementList.Add(AddTextExpressionToSb("'", sbReference));
                         }
 
                         string toStringMethodName = "ToString";
-                        if (typeof(IDictionary).IsAssignableFrom(t))
+                        if (typeof (IDictionary).IsAssignableFrom(t))
                         {
                             toStringMethodName = "ToHStoreString";
                         }
-                        else if (t != typeof(string) && typeof(IEnumerable).IsAssignableFrom(t))
+                        else if (t != typeof (string) && typeof (IEnumerable).IsAssignableFrom(t))
                         {
                             toStringMethodName = "ToArrayString";
                         }
-                        else if (t == typeof(List<string>))
+                        else if (t == typeof (List<string>))
                         {
                             toStringMethodName = "ToTsVectorString";
                         }
-
-                        var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);
 
                         CodeMethodInvokeExpression toStringInvoke;
                         if (t.IsValueType && column.CanBeNull)
@@ -1440,15 +1537,15 @@ namespace DbMetal.Generator
                             toStringInvoke = new CodeMethodInvokeExpression(columnProperty, toStringMethodName);
                         }
 
-                        if (t == typeof(DateTime))
+                        if (t == typeof (DateTime))
                         {
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression("yyyy.MM.dd HH:mm:ss.fffffff"));
                         }
-                        else if (t == typeof(bool))
+                        else if (t == typeof (bool))
                         {
                             toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "ToUpper");
                         }
-                        else if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
+                        else if (t == typeof (float) || t == typeof (double) || t == typeof (decimal))
                         {
                             toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "Replace");
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
@@ -1462,39 +1559,65 @@ namespace DbMetal.Generator
                             toStringInvoke.Parameters.Add(new CodePrimitiveExpression("''"));
                         }
 
-                        var addExpression = new CodeBinaryOperatorExpression(stringReference, CodeBinaryOperatorType.Add, toStringInvoke);
-                        CodeStatementList.Add(new CodeAssignStatement(stringReference, addExpression));
+                        codeStatementList.Add(AddExpressionToSb(toStringInvoke, sbReference));
 
                         if (!isNumericType)
                         {
-                            CodeStatementList.Add(AddTextExpression("'", stringReference));
+                            codeStatementList.Add(AddTextExpressionToSb("'", sbReference));
                         }
 
                         // For reference types: if/else statement and null assigment
                         if (t.IsClass)
                         {
-                            var codeStatements = CodeStatementList.ToArray();
+                            var codeStatements = codeStatementList.ToArray();
 
-                            var inequality = new CodeBinaryOperatorExpression(columnProperty, CodeBinaryOperatorType.IdentityInequality, new CodePrimitiveExpression(null));
+                            var inequality = new CodeBinaryOperatorExpression(columnProperty,
+                                CodeBinaryOperatorType.IdentityInequality, new CodePrimitiveExpression(null));
 
-                            var ifCondition = new CodeConditionStatement(inequality, codeStatements, 
-                                new CodeStatement[] { AddTextExpression("null", stringReference) });
-                            propertyInsert.GetStatements.Add(ifCondition);
+                            var ifCondition = new CodeConditionStatement(inequality, codeStatements,
+                                new CodeStatement[] {AddTextExpressionToSb("null", sbReference)});
+
+                            return new List<CodeStatement>() { ifCondition };
                         }
                         else if (column.CanBeNull)
                         {
-                            var codeStatements = CodeStatementList.ToArray();
+                            var codeStatements = codeStatementList.ToArray();
 
                             var hasValue = new CodePropertyReferenceExpression(columnProperty, "HasValue");
 
                             var ifCondition = new CodeConditionStatement(hasValue, codeStatements,
-                                new CodeStatement[] { AddTextExpression("null", stringReference) });
+                                new CodeStatement[] {AddTextExpressionToSb("null", sbReference)});
+
+                            return new List<CodeStatement>() { ifCondition };
+                        }
+                        else
+                        {
+                            return codeStatementList;
+                        }
+                    });
+
+                    if (!string.IsNullOrEmpty(column.Expression))
+                    {
+                        if (isNumericType)
+                        {
+                            var codeStatementList = addColumnField().ToArray();
+
+                            var inequality = new CodeBinaryOperatorExpression(columnProperty,
+                                CodeBinaryOperatorType.GreaterThan, new CodePrimitiveExpression(0));
+
+                            var ifCondition = new CodeConditionStatement(inequality, codeStatementList,
+                                new CodeStatement[] { AddTextExpressionToSb(column.Expression, sbReference) });
+
                             propertyInsert.GetStatements.Add(ifCondition);
                         }
                         else
                         {
-                            CodeStatementList.ForEach(x => propertyInsert.GetStatements.Add(x));
+                            propertyInsert.GetStatements.Add(AddTextExpressionToSb(column.Expression, sbReference));
                         }
+                    }
+                    else
+                    {
+                        addColumnField().ForEach(x => propertyInsert.GetStatements.Add(x));
                     }
 
                     firstColumn = false;
@@ -1503,8 +1626,11 @@ namespace DbMetal.Generator
 
             if (Context.Parameters.FastInsert)
             {
-                propertyInsert.GetStatements.Add(AddTextExpression(")", stringReference));
-                propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(stringReference));
+                propertyInsert.GetStatements.Add(AddTextExpressionToSb(")", sbReference));
+
+                var sbToStringInvoke = new CodeMethodInvokeExpression(sbReference, "ToString");
+
+                propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
                 _class.Members.Add(propertyInsert);
             }
 
@@ -1547,6 +1673,102 @@ namespace DbMetal.Generator
             }
 
             return _class;
+        }
+
+        protected CodeTypeDeclaration GenerateEfClass(Table table, Database database)
+        {
+            string schemaName = "public";
+            string tableName = table.Name;
+
+            if (table.Name.Contains('.'))
+            {
+                schemaName = table.Name.Split('.').First();
+                tableName = table.Name.Substring(schemaName.Length + 1);
+            }
+
+            var cls = new CodeTypeDeclaration()
+                {
+                    IsClass = true,
+                    IsPartial = false,
+                    Name = table.Type.Name,
+                    TypeAttributes = TypeAttributes.Public,
+                    CustomAttributes =
+                    {
+                        new CodeAttributeDeclaration("Table",
+                           new CodeAttributeArgument(new CodePrimitiveExpression(tableName)),
+                           new CodeAttributeArgument("Schema", new CodePrimitiveExpression(schemaName))),
+                    }
+                };
+
+            cls.Comments.Add(new CodeCommentStatement($"<summary> {table.Type.Name} entity </summary>", true));
+
+            this.WriteCustomTypes(cls, table);
+
+            var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+
+            foreach (Column column in table.Type.Columns)
+            {
+                var type = ToCodeTypeReference(column);
+                var columnMember = column.Member ?? column.Name;
+
+                var columnAttrArgs = new List<CodeAttributeArgument>
+                {
+                    new CodeAttributeArgument(new CodePrimitiveExpression(column.Name))
+                };
+
+                if (column.IsPrimaryKey && pkColumns.Count > 1)
+                {
+                    var index = pkColumns.FindIndex(x => x == column);
+                    columnAttrArgs.Add(new CodeAttributeArgument("Order", new CodePrimitiveExpression(index)));                    
+                }
+
+                var field = new CodeMemberField(type, columnMember)
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    CustomAttributes =
+                    {
+                        new CodeAttributeDeclaration("Column", columnAttrArgs.ToArray())
+                    }
+                };
+
+                field.Comments.Add(new CodeCommentStatement($"<summary> {columnMember} </summary>", true));
+
+                if (column.IsPrimaryKey)
+                {
+                    field.CustomAttributes.Add(new CodeAttributeDeclaration("Key"));
+                }
+
+                field.Name += " { get; set; }";
+
+                cls.Members.Add(field);
+
+                var relatedAssociation = (from a in table.Type.Associations
+                                           where a.IsForeignKey && a.TheseKeys.Contains(column.Member)
+                                           select a)
+                                       .FirstOrDefault();
+
+                if (relatedAssociation != null)
+                {
+                    var fieldRel = new CodeMemberField(relatedAssociation.Member, relatedAssociation.Member)
+                                    {
+                                        Attributes = MemberAttributes.Static | MemberAttributes.FamilyAndAssembly,
+                                        CustomAttributes =
+                                        {
+                                            new CodeAttributeDeclaration("ForeignKey",
+                                                new CodeAttributeArgument(
+                                                    new CodeMethodInvokeExpression(null,
+                                                        "nameof",
+                                                         new CodeVariableReferenceExpression(relatedAssociation.ThisKey))))
+                                        }
+                                    };
+
+                    fieldRel.Name += " { get; set; }";
+
+                    cls.Members.Add(fieldRel);
+                }
+            }            
+
+            return cls;
         }
 
         void WriteCustomTypes(CodeTypeDeclaration entity, Table table)

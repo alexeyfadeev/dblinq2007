@@ -218,82 +218,87 @@ namespace DbMetal.Generator.Implementation
 
         public void GenerateCode(Parameters parameters, Database dbSchema, ISchemaLoader schemaLoader, string filename)
         {
-            ICodeGenerator codeGenerator = FindCodeGenerator(parameters, filename) ??
-                (string.IsNullOrEmpty(parameters.Language)
-                    ? CodeDomGenerator.CreateFromFileExtension(Path.GetExtension(filename))
-                    : CodeDomGenerator.CreateFromLanguage(parameters.Language));
+            ICodeGenerator codeGenerator = FindCodeGenerator(parameters, filename)
+                                           ?? (string.IsNullOrEmpty(parameters.Language)
+                                                   ? CodeDomGenerator.CreateFromFileExtension(
+                                                       Path.GetExtension(filename))
+                                                   : CodeDomGenerator.CreateFromLanguage(parameters.Language));
 
+            if (!(codeGenerator is CodeDomGenerator))
+            {
+                parameters.Write("Wrong codeGenerator (CodeDomGenerator is needed)");
+                return;
+            }
+
+            /*
             if (string.IsNullOrEmpty(filename))
                 filename = dbSchema.Class;
             if (String.IsNullOrEmpty(Path.GetExtension(filename)))
                 filename += codeGenerator.Extension;
+                */
+
+            var generationContext = new GenerationContext(parameters, schemaLoader);
+
+            // EfContext
+            filename = dbSchema.Class.Replace("Context", "EfContext.cs");
 
             using (var streamWriter = new StreamWriter(filename))
             {
-                var generationContext = new GenerationContext(parameters, schemaLoader);
-                codeGenerator.Write(streamWriter, dbSchema, generationContext);
+                ((CodeDomGenerator)codeGenerator).WriteEfContext(streamWriter, dbSchema, generationContext);
+            }
 
-                // Generate POCO models into separate file, if it's needed
-                if (parameters.Poco.HasValue && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+            this.ProcessFile(filename);
+
+            // Entities
+            string efFileName = dbSchema.Class.Replace("Context", "Entities.cs");
+            parameters.Write("<<< writing EF models into file '{0}'", efFileName);
+
+            using (var streamWriteref = new StreamWriter(efFileName))
+            {
+                ((CodeDomGenerator)codeGenerator).WriteEf(streamWriteref, dbSchema, generationContext);
+            }
+
+            this.ProcessFile(efFileName, true);
+
+            // Generate IContext, ContextProxy, MockContext into separate files, if it's needed
+            if (parameters.IContext && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+            {
+                string interfaceFileName = Path.Combine(
+                    Path.GetDirectoryName(filename),
+                    "I" + Path.GetFileName(filename));
+                parameters.Write("<<< writing IContext into file '{0}'", interfaceFileName);
+
+                using (var streamWriterIContext = new StreamWriter(interfaceFileName))
                 {
-                    string pocoFileName = filename.Split('.')[0] + "Models." + filename.Split('.').Last();
-                    parameters.Write("<<< writing POCO models into file '{0}'", pocoFileName);
-
-                    using (var streamWriterPoco = new StreamWriter(pocoFileName))
-                    {
-                        ((CodeDomGenerator)codeGenerator).WritePoco(streamWriterPoco, dbSchema, generationContext, parameters.Poco.Value);
-                    }
-                    string text = File.ReadAllText(pocoFileName);
-                    text = text.Replace("{ get; set; };", "{ get; set; }");
-                    File.WriteAllText(pocoFileName, text);
-
-                    
-                    // Generate mapper code
-                    if(parameters.Mapper)
-                    {
-                        string mapperFileName = Path.Combine(Path.GetDirectoryName(filename),
-                            Path.GetFileNameWithoutExtension(filename) + "Mapper.cs");
-                        parameters.Write("<<< writing Mapper-code into file '{0}'", mapperFileName);
-
-                        using (var streamWriterMapper = new StreamWriter(mapperFileName))
-                        {
-                            ((CodeDomGenerator)codeGenerator).WriteMapper(streamWriterMapper, dbSchema, generationContext);
-                        }
-                    }
+                    ((CodeDomGenerator)codeGenerator).WriteIContext(streamWriterIContext, dbSchema, generationContext);
                 }
 
-                // Generate IContext, ContextProxy, MockContext into separate files, if it's needed
-                if (parameters.IContext && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+                string proxyFileName = Path.Combine(
+                    Path.GetDirectoryName(filename),
+                    Path.GetFileNameWithoutExtension(filename) + "Proxy.cs");
+
+                parameters.Write("<<< writing ContextProxy into file '{0}'", proxyFileName);
+
+                using (var streamWriterContextProxy = new StreamWriter(proxyFileName))
                 {
-                    string interfaceFileName = Path.Combine(Path.GetDirectoryName(filename), "I" + Path.GetFileName(filename));
-                    parameters.Write("<<< writing IContext into file '{0}'", interfaceFileName);
+                    ((CodeDomGenerator)codeGenerator).WriteContextProxy(
+                        streamWriterContextProxy,
+                        dbSchema,
+                        generationContext);
+                }
 
-                    using (var streamWriterIContext = new StreamWriter(interfaceFileName))
-                    {
-                        ((CodeDomGenerator)codeGenerator).WriteIContext(streamWriterIContext, dbSchema, generationContext);
-                    }
+                string mockFileName = Path.Combine(
+                    Path.GetDirectoryName(filename),
+                    "Mock" + Path.GetFileName(filename));
 
-                    
-                    string proxyFileName = Path.Combine(Path.GetDirectoryName(filename),
-                        Path.GetFileNameWithoutExtension(filename) + "Proxy.cs");
+                parameters.Write("<<< writing MockContext into file '{0}'", mockFileName);
 
-                    parameters.Write("<<< writing ContextProxy into file '{0}'", proxyFileName);
-
-                    using (var streamWriterContextProxy = new StreamWriter(proxyFileName))
-                    {
-                        ((CodeDomGenerator)codeGenerator).WriteContextProxy(streamWriterContextProxy, dbSchema, generationContext);
-                    }
-
-
-                    string mockFileName = Path.Combine(Path.GetDirectoryName(filename),
-                        "Mock" + Path.GetFileName(filename));
-
-                    parameters.Write("<<< writing MockContext into file '{0}'", mockFileName);
-
-                    using (var streamWriterMockContext = new StreamWriter(mockFileName))
-                    {
-                        ((CodeDomGenerator)codeGenerator).WriteMockContext(streamWriterMockContext, dbSchema, generationContext);
-                    }
+                using (var streamWriterMockContext = new StreamWriter(mockFileName))
+                {
+                    ((CodeDomGenerator)codeGenerator).WriteMockContext(
+                        streamWriterMockContext,
+                        dbSchema,
+                        generationContext);
                 }
             }
         }
@@ -338,6 +343,24 @@ namespace DbMetal.Generator.Implementation
             {
                 return DbmlSerializer.Read(dbmlFile);
             }
+        }
+
+        private void ProcessFile(string filePath, bool replaceToVirtual = false)
+        {
+            string text = File.ReadAllText(filePath);
+
+            text = text.Replace("{ get; set; };", "{ get; set; }");
+
+            if (replaceToVirtual)
+            {
+                text = text.Replace("internal static", "public virtual");
+            }
+
+            text = text.Replace(";\r\n\t\r\n\t", ";\r\n\t");
+            text = text.Replace("{\r\n\t\t\r\n\t\t", "{\r\n\t\t");
+            text = text.Replace("\t", "    ");
+
+            File.WriteAllText(filePath, text);
         }
 
         private void PrintUsage(Parameters parameters)
