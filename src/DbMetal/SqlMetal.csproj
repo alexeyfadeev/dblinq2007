@@ -160,12 +160,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Language\GermanWords.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DbLinq\System.Data.Linq.csproj">
-      <Project>{97305421-3071-4175-AA3C-9A432CC28121}</Project>
-      <Name>System.Data.Linq</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <DependentAssembly Include="$(SolutionDir)..\lib\Npgsql.dll" />

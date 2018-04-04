@@ -283,20 +283,6 @@ namespace DbMetal.Generator.Implementation
 
                 this.ProcessFile(repoFileName);
 
-                string proxyFileName = Path.Combine(
-                    Path.GetDirectoryName(filename),
-                    Path.GetFileNameWithoutExtension(filename) + "Proxy.cs");
-
-                parameters.Write("<<< writing ContextProxy into file '{0}'", proxyFileName);
-
-                using (var streamWriterContextProxy = new StreamWriter(proxyFileName))
-                {
-                    ((CodeDomGenerator)codeGenerator).WriteContextProxy(
-                        streamWriterContextProxy,
-                        dbSchema,
-                        generationContext);
-                }
-
                 string mockFileName = Path.Combine(
                     Path.GetDirectoryName(filename),
                     "Mock" + Path.GetFileName(filename));
