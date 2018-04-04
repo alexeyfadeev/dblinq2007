@@ -260,10 +260,11 @@ namespace DbMetal.Generator.Implementation
 
             this.ProcessFile(efFileName, true);
 
-            // Generate IContext, ContextProxy, MockContext into separate files, if it's needed
+            // Generate Repository into separate files, if it's needed
             if (parameters.IContext)
             {
-                string interfaceFileName = "I" + dbSchema.Class.Replace("Context", "Repository.cs"); ;
+                // IRepository
+                string interfaceFileName = "I" + dbSchema.Class.Replace("Context", "Repository.cs");
                 parameters.Write("<<< writing IRepository into file '{0}'", interfaceFileName);
 
                 using (var streamWriterIContext = new StreamWriter(interfaceFileName))
@@ -273,7 +274,8 @@ namespace DbMetal.Generator.Implementation
 
                 this.ProcessFile(interfaceFileName);
 
-                string repoFileName = dbSchema.Class.Replace("Context", "Repository.cs"); ;
+                // Repository
+                string repoFileName = dbSchema.Class.Replace("Context", "Repository.cs");
                 parameters.Write("<<< writing Repository into file '{0}'", repoFileName);
 
                 using (var streamWriterRepo = new StreamWriter(repoFileName))
@@ -283,19 +285,20 @@ namespace DbMetal.Generator.Implementation
 
                 this.ProcessFile(repoFileName);
 
-                string mockFileName = Path.Combine(
-                    Path.GetDirectoryName(filename),
-                    "Mock" + Path.GetFileName(filename));
+                // MockRepository
+                string mockFileName = "Mock" + dbSchema.Class.Replace("Context", "Repository.cs");
 
                 parameters.Write("<<< writing MockContext into file '{0}'", mockFileName);
 
                 using (var streamWriterMockContext = new StreamWriter(mockFileName))
                 {
-                    ((CodeDomGenerator)codeGenerator).WriteMockContext(
+                    ((CodeDomGenerator)codeGenerator).WriteMockRepository(
                         streamWriterMockContext,
                         dbSchema,
                         generationContext);
                 }
+
+                this.ProcessFile(mockFileName);
             }
         }
 
