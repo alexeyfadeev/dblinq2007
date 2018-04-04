@@ -149,17 +149,30 @@ namespace DbMetal.Generator
                     });
         }
 
-        public void WriteIContext(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WriteIRepository(TextWriter textWriter, Database dbSchema, GenerationContext context)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GenerateIContextDomModel(dbSchema), textWriter,
+                this.GenerateIRepositoryDomModel(dbSchema), textWriter,
                 new CodeGeneratorOptions()
                 {
                     BracingStyle = "C",
                     IndentString = "\t",
                 });
+        }
+
+        public void WriteRepository(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                this.GenerateRepositoryDomModel(dbSchema), textWriter,
+                new CodeGeneratorOptions()
+                    {
+                        BracingStyle = "C",
+                        IndentString = "\t",
+                    });
         }
 
         public void WriteContextProxy(TextWriter textWriter, Database dbSchema, GenerationContext context)
@@ -317,54 +330,89 @@ namespace DbMetal.Generator
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateIContextDomModel(Database database)
+        protected virtual CodeNamespace GenerateIRepositoryDomModel(Database database)
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
-            CodeNamespace _namespace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+            CodeNamespace nameSpace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
 
-            _namespace.Imports.Add(new CodeNamespaceImport("System"));
-            _namespace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
 
-            var _interface = new CodeTypeDeclaration("I" + database.Class)
-                                 {
-                                     IsInterface = true,
-                                     IsPartial = true
-                                 };
-            _interface.BaseTypes.Add(new CodeTypeReference("IDisposable"));
+            var iface = new CodeTypeDeclaration("I" + database.Class.Replace("Context", "Repository"))
+            {
+                IsInterface = true,
+                IsPartial = true
+            };
 
+            iface.BaseTypes.Add(new CodeTypeReference("IDisposable"));
+
+            // Tables
             foreach (Table table in database.Tables)
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
 
+                string name = this.GetTableNamePluralized(table.Member);
+
                 var field = new CodeMemberProperty
-                                {
-                                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                    Name = GetTableNamePluralized(table.Member),
-                                    Type = new CodeTypeReference("IQueryable", tableType),
-                                };
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = name,
+                    Type = new CodeTypeReference("IQueryable", tableType),
+                };
+
                 field.HasGet = true;
 
-                _interface.Members.Add(field);
+                field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
+
+                iface.Members.Add(field);
             }
 
             var voidTypeRef = new CodeTypeReference(typeof(void));
 
+            // Add methods
             foreach (Table table in database.Tables)
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 var method = new CodeMemberMethod()
-                                 {
-                                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                     Name = "Add" + table.Member,
-                                     ReturnType = voidTypeRef
-                                 };
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Add" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
+
                 method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, GetLowerCamelCase(table.Member)));
 
-                _interface.Members.Add(method);
+                iface.Members.Add(method);
             }
 
+            // AddRange methods
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                string paramName = GetLowerCamelCase(this.GetTableNamePluralized(table.Member));
+
+                var method = new CodeMemberMethod
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "AddRange" + this.GetTableNamePluralized(table.Member),
+                    ReturnType = voidTypeRef
+                };
+
+                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("IEnumerable", tableType), paramName));
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Add range of {table.Member} </summary>", true));
+
+                iface.Members.Add(method);
+            }
+
+            // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
                 var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
@@ -373,54 +421,330 @@ namespace DbMetal.Generator
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 var method = new CodeMemberMethod()
-                                 {
-                                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                     Name = "Get" + table.Member,
-                                     ReturnType = tableType
-                                 };
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Get" + table.Member,
+                    ReturnType = tableType
+                };
 
                 foreach (var col in pkColumns)
                 {
                     method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
                 }
 
-                _interface.Members.Add(method);
+                method.Comments.Add(new CodeCommentStatement($"<summary> Get {table.Member} </summary>", true));
+
+                iface.Members.Add(method);
             }
 
+            // Bulk delete methods (by PK)
             foreach (Table table in database.Tables)
             {
                 var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
                 if (!pkColumns.Any()) continue;
 
-                var tableType = new CodeTypeReference(table.Type.Name);
-
                 var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "BulkDelete" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                iface.Members.Add(method);
+            }
+
+            // Bulk delete methods (by expression)
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name + ", bool");
+
+                var method = new CodeMemberMethod
                                  {
                                      Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                     Name = "Delete" + table.Member,
+                                     Name = "BulkDelete" + this.GetTableNamePluralized(table.Member),
                                      ReturnType = voidTypeRef
                                  };
 
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
-                }
+                method.Parameters.Add(new CodeParameterDeclarationExpression(
+                    new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
+                    "filerExpression"));
 
-                _interface.Members.Add(method);
+                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                iface.Members.Add(method);
             }
 
             var methodSubmit = new CodeMemberMethod()
-                                   {
-                                       Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                       Name = "SubmitChanges",
-                                       ReturnType = voidTypeRef
-                                   };
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "SaveChanges",
+                ReturnType = voidTypeRef
+            };
 
-            _interface.Members.Add(methodSubmit);
+            iface.Members.Add(methodSubmit);
 
-            _namespace.Types.Add(_interface);
+            nameSpace.Types.Add(iface);
 
-            return _namespace;
+            return nameSpace;
+        }
+
+        protected virtual CodeNamespace GenerateRepositoryDomModel(Database database)
+        {
+            this.CheckLanguageWords(this.Context.Parameters.Culture);
+
+            CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
+
+            nameSpace.Imports.Add(new CodeNamespaceImport("System"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("EntityFramework.Extensions"));
+
+            var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "Repository"))
+            {
+                IsPartial = true,
+                Attributes = MemberAttributes.Public | MemberAttributes.Final
+            };
+
+            cls.Comments.Add(new CodeCommentStatement("<summary> Database repository </summary>", true));
+
+            cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
+
+            var contextType = new CodeTypeReference(database.Class.Replace("Context", "EfContext"));
+
+            // Constructor
+            var constructor = new CodeConstructor
+            {
+                Attributes = MemberAttributes.Public,
+                Parameters = { new CodeParameterDeclarationExpression(contextType, "context") },
+            };
+
+            constructor.Comments.Add(new CodeCommentStatement("<summary> Database repository constructor </summary>", true));
+
+            var contextRef = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "Context");
+
+            var statementAssign = new CodeAssignStatement(
+                contextRef,
+                new CodeArgumentReferenceExpression("context"));
+
+            constructor.Statements.Add(statementAssign);
+
+            cls.Members.Add(constructor);
+
+            // Context property
+            var contextField = new CodeMemberField
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "Context",
+                Type = contextType
+            };
+
+            contextField.Comments.Add(new CodeCommentStatement("<summary> Database context </summary>", true));
+
+            contextField.Name += " { get; set; }";
+
+            cls.Members.Add(contextField);
+
+            // Tables
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                string name = this.GetTableNamePluralized(table.Member);
+                
+                var field = new CodeMemberField
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = name,
+                    Type = new CodeTypeReference("IQueryable", tableType),
+                };
+
+                field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
+
+                field.Name += $" => this.Context.{name}.AsQueryable()";
+
+                cls.Members.Add(field);
+            }
+
+            var voidTypeRef = new CodeTypeReference(typeof(void));
+
+            // Add methods
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                string paramName = GetLowerCamelCase(table.Member);
+
+                var method = new CodeMemberMethod
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Add" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+
+                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, paramName));
+
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                method.Statements.Add(new CodeMethodInvokeExpression(prop, "Add", new CodeVariableReferenceExpression(paramName)));
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
+
+                cls.Members.Add(method);
+            }
+
+            // AddRange methods
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                string paramName = GetLowerCamelCase(this.GetTableNamePluralized(table.Member));
+
+                var method = new CodeMemberMethod
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "AddRange" + this.GetTableNamePluralized(table.Member),
+                    ReturnType = voidTypeRef
+                };
+                                
+                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("IEnumerable", tableType), paramName));
+
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                method.Statements.Add(new CodeMethodInvokeExpression(prop, "AddRange", new CodeVariableReferenceExpression(paramName)));
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Add range of {table.Member} </summary>", true));
+
+                cls.Members.Add(method);
+            }
+
+            // Get methods (by PK)
+            foreach (Table table in database.Tables)
+            {
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+
+                if (!pkColumns.Any()) continue;
+
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "Get" + table.Member,
+                    ReturnType = tableType
+                };
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
+
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                var statement = new CodeMethodInvokeExpression(prop, "FirstOrDefault", new CodeSnippetExpression(
+                    "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " +
+                                                                        GetStorageFieldName(c).Replace("_", "")).ToArray())));
+                method.Statements.Add(new CodeMethodReturnStatement(statement));
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Get {table.Member} </summary>", true));
+
+                cls.Members.Add(method);
+            }
+
+            // Bulk delete methods (by PK)
+            foreach (Table table in database.Tables)
+            {
+                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+
+                if (!pkColumns.Any()) continue;
+
+                var method = new CodeMemberMethod()
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "BulkDelete" + table.Member,
+                    ReturnType = voidTypeRef
+                };
+
+                foreach (var col in pkColumns)
+                {
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                }
+
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeSnippetExpression(
+                    "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " +
+                                                                        GetStorageFieldName(c).Replace("_", "")).ToArray())));
+
+                method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                cls.Members.Add(method);
+            }
+
+            // Bulk delete methods (by expression)
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name + ", bool");
+
+                var method = new CodeMemberMethod
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = "BulkDelete" + this.GetTableNamePluralized(table.Member),
+                    ReturnType = voidTypeRef
+                };
+
+                method.Parameters.Add(new CodeParameterDeclarationExpression(
+                    new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
+                        "filerExpression"));
+   
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeVariableReferenceExpression("filerExpression"));
+                
+                method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                cls.Members.Add(method);
+            }
+
+            // SaveChanges method
+            var methodSubmit = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "SaveChanges",
+                ReturnType = voidTypeRef
+            };
+
+            var mtd = new CodeMethodInvokeExpression(contextRef, "SaveChanges");
+            methodSubmit.Statements.Add(mtd);
+
+            methodSubmit.Comments.Add(new CodeCommentStatement($"<summary> Save changes </summary>", true));
+
+            cls.Members.Add(methodSubmit);
+
+            // Dispose method
+            var methodDispose = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "Dispose",
+                ReturnType = voidTypeRef
+            };
+
+            mtd = new CodeMethodInvokeExpression(contextRef, "Dispose");
+            methodDispose.Statements.Add(mtd);
+
+            methodDispose.Comments.Add(new CodeCommentStatement($"<summary> Dispose </summary>", true));
+
+            cls.Members.Add(methodDispose);
+
+            nameSpace.Types.Add(cls);
+
+            return nameSpace;
         }
 
         protected virtual CodeNamespace GenerateEfContextDomModel(Database database)
@@ -456,14 +780,14 @@ namespace DbMetal.Generator
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
 
-                string name = GetTableNamePluralized(table.Member);
+                string name = this.GetTableNamePluralized(table.Member);
 
                 var field = new CodeMemberField
-                                {
-                                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                    Name = name,
-                                    Type = new CodeTypeReference("DbSet", tableType),
-                                };
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Name = name,
+                    Type = new CodeTypeReference("DbSet", tableType),
+                };
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 

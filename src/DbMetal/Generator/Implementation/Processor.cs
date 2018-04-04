@@ -261,17 +261,27 @@ namespace DbMetal.Generator.Implementation
             this.ProcessFile(efFileName, true);
 
             // Generate IContext, ContextProxy, MockContext into separate files, if it's needed
-            if (parameters.IContext && codeGenerator is CodeDomGenerator && filename.Contains('.'))
+            if (parameters.IContext)
             {
-                string interfaceFileName = Path.Combine(
-                    Path.GetDirectoryName(filename),
-                    "I" + Path.GetFileName(filename));
-                parameters.Write("<<< writing IContext into file '{0}'", interfaceFileName);
+                string interfaceFileName = "I" + dbSchema.Class.Replace("Context", "Repository.cs"); ;
+                parameters.Write("<<< writing IRepository into file '{0}'", interfaceFileName);
 
                 using (var streamWriterIContext = new StreamWriter(interfaceFileName))
                 {
-                    ((CodeDomGenerator)codeGenerator).WriteIContext(streamWriterIContext, dbSchema, generationContext);
+                    ((CodeDomGenerator)codeGenerator).WriteIRepository(streamWriterIContext, dbSchema, generationContext);
                 }
+
+                this.ProcessFile(interfaceFileName);
+
+                string repoFileName = dbSchema.Class.Replace("Context", "Repository.cs"); ;
+                parameters.Write("<<< writing Repository into file '{0}'", repoFileName);
+
+                using (var streamWriterRepo = new StreamWriter(repoFileName))
+                {
+                    ((CodeDomGenerator)codeGenerator).WriteRepository(streamWriterRepo, dbSchema, generationContext);
+                }
+
+                this.ProcessFile(repoFileName);
 
                 string proxyFileName = Path.Combine(
                     Path.GetDirectoryName(filename),
@@ -360,6 +370,7 @@ namespace DbMetal.Generator.Implementation
             text = text.Replace("{\r\n\t\t\r\n\t\t", "{\r\n\t\t");
             text = text.Replace(";\r\n\t\t\t\tif ", ";\r\n\t\t\t\t\r\n\t\t\t\tif ");
             text = text.Replace("}\r\n\t\t\t\tsb ", "}\r\n\t\t\t\t\r\n\t\t\t\tsb ");
+            text = text.Replace("\r\n\t\t{\r\n\t\t\tget;\r\n\t\t}", " { get; }");
             text = text.Replace("\t", "    ");
 
             File.WriteAllText(filePath, text);
