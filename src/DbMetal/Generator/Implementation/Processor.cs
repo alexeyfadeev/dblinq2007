@@ -218,13 +218,13 @@ namespace DbMetal.Generator.Implementation
 
         public void GenerateCode(Parameters parameters, Database dbSchema, ISchemaLoader schemaLoader, string filename)
         {
-            ICodeGenerator codeGenerator = FindCodeGenerator(parameters, filename)
+            var generator = FindCodeGenerator(parameters, filename)
                                            ?? (string.IsNullOrEmpty(parameters.Language)
                                                    ? CodeDomGenerator.CreateFromFileExtension(
                                                        Path.GetExtension(filename))
                                                    : CodeDomGenerator.CreateFromLanguage(parameters.Language));
 
-            if (!(codeGenerator is CodeDomGenerator))
+            if (!(generator is CodeDomGenerator))
             {
                 parameters.Write("Wrong codeGenerator (CodeDomGenerator is needed)");
                 return;
@@ -237,6 +237,10 @@ namespace DbMetal.Generator.Implementation
                 filename += codeGenerator.Extension;
                 */
 
+            var codeGenerator = (CodeDomGenerator)generator;
+
+            codeGenerator.NetCoreMode = parameters.NetCoreMode;
+
             var generationContext = new GenerationContext(parameters, schemaLoader);
 
             // EfContext
@@ -244,7 +248,7 @@ namespace DbMetal.Generator.Implementation
 
             using (var streamWriter = new StreamWriter(filename))
             {
-                ((CodeDomGenerator)codeGenerator).WriteEfContext(streamWriter, dbSchema, generationContext);
+                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext);
             }
 
             this.ProcessFile(filename);
@@ -255,13 +259,13 @@ namespace DbMetal.Generator.Implementation
 
             using (var streamWriteref = new StreamWriter(efFileName))
             {
-                ((CodeDomGenerator)codeGenerator).WriteEf(streamWriteref, dbSchema, generationContext);
+                codeGenerator.WriteEf(streamWriteref, dbSchema, generationContext);
             }
 
             this.ProcessFile(efFileName, true);
 
             // Generate Repository into separate files, if it's needed
-            if (parameters.IContext)
+            if (parameters.IRepository)
             {
                 // IRepository
                 string interfaceFileName = "I" + dbSchema.Class.Replace("Context", "Repository.cs");
@@ -269,7 +273,7 @@ namespace DbMetal.Generator.Implementation
 
                 using (var streamWriterIContext = new StreamWriter(interfaceFileName))
                 {
-                    ((CodeDomGenerator)codeGenerator).WriteIRepository(streamWriterIContext, dbSchema, generationContext);
+                    codeGenerator.WriteIRepository(streamWriterIContext, dbSchema, generationContext);
                 }
 
                 this.ProcessFile(interfaceFileName);
@@ -280,7 +284,7 @@ namespace DbMetal.Generator.Implementation
 
                 using (var streamWriterRepo = new StreamWriter(repoFileName))
                 {
-                    ((CodeDomGenerator)codeGenerator).WriteRepository(streamWriterRepo, dbSchema, generationContext);
+                    codeGenerator.WriteRepository(streamWriterRepo, dbSchema, generationContext);
                 }
 
                 this.ProcessFile(repoFileName);
@@ -292,7 +296,7 @@ namespace DbMetal.Generator.Implementation
 
                 using (var streamWriterMockContext = new StreamWriter(mockFileName))
                 {
-                    ((CodeDomGenerator)codeGenerator).WriteMockRepository(
+                    codeGenerator.WriteMockRepository(
                         streamWriterMockContext,
                         dbSchema,
                         generationContext);

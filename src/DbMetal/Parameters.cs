@@ -201,24 +201,19 @@ namespace DbMetal
         public string ContextNameMode { get; set; }
 
         /// <summary>
-        /// Generate POCO models as well (true for Serializable attribute)
-        /// </summary>
-        public bool? Poco { get; set; }
-
-        /// <summary>
         /// Enable Fast-insert method
         /// </summary>
         public bool FastInsert { get; set; }
 
         /// <summary>
-        /// Generate IContext interface and context partial implementation
+        /// Generate IRepository interface, Repository and MockRepository partial implementation
         /// </summary>
-        public bool IContext { get; set; }
+        public bool IRepository { get; set; }
 
         /// <summary>
-        /// Generate code for auto-mapping
+        /// .Net Core mode
         /// </summary>
-        public bool Mapper { get; set; }
+        public bool NetCoreMode { get; set; }
 
         TextWriter log;
         public TextWriter Log
@@ -350,18 +345,15 @@ namespace DbMetal
                   "DB-context class naming mode " + 
                   "(default: wordextract; may be: wordextract+context, wordcase, wordcase+context)",
                   v => ContextNameMode = v ?? "wordextract" },
-                { "poco=",
-                  "Enables POCO models generating. If Serializable attribute is needed, set =serializable value, else don't set any value",
-                  v => Poco = v == "serializable" },
                 { "fast-insert",
                   "Enables ExecuteFastInsert method",
                   v => FastInsert = v != null },
-                { "icontext",
-                  "Enables IContext and ContextProxy generating",
-                  v => IContext = v != null },
-                { "mapper",
-                  "Enables mapper code generating. Works only when POCO option enabled",
-                  v => Mapper = v != null },
+                { "repository",
+                  "Enables Repository, IRepository and MockRepository generating",
+                  v => this.IRepository = v != null },
+                { "core",
+                  "Enables .Net Core mode",
+                  v => this.NetCoreMode = v != null },
             };
 
             Extra = Options.Parse(args);

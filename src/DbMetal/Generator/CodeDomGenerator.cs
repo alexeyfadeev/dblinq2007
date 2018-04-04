@@ -75,6 +75,8 @@ namespace DbMetal.Generator
             get { return "*"; }
         }
 
+        public bool NetCoreMode { get; set; }
+
         public void CheckLanguageWords(string cultureName)
         {
             if (LanguageWords == null)
@@ -228,7 +230,11 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+
+            if (!this.NetCoreMode)
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+            }
 
             var iface = new CodeTypeDeclaration("I" + database.Class.Replace("Context", "Repository"))
             {
@@ -326,50 +332,60 @@ namespace DbMetal.Generator
                 iface.Members.Add(method);
             }
 
-            // Bulk delete methods (by PK)
-            foreach (Table table in database.Tables)
+            if (!this.NetCoreMode)
             {
-                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-                if (!pkColumns.Any()) continue;
-
-                var method = new CodeMemberMethod()
+                // Bulk delete methods (by PK)
+                foreach (Table table in database.Tables)
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "BulkDelete" + table.Member,
-                    ReturnType = voidTypeRef
-                };
+                    var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
 
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                    if (!pkColumns.Any()) continue;
+
+                    var method = new CodeMemberMethod()
+                    {
+                        Attributes =
+                            MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkDelete" + table.Member,
+                        ReturnType = voidTypeRef
+                    };
+
+                    foreach (var col in pkColumns)
+                    {
+                        method.Parameters.Add(
+                            new CodeParameterDeclarationExpression(
+                                ToCodeTypeReference(col),
+                                GetStorageFieldName(col).Replace("_", "")));
+                    }
+
+                    method.Comments.Add(
+                        new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                    iface.Members.Add(method);
                 }
 
-                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
-
-                iface.Members.Add(method);
-            }
-
-            // Bulk delete methods (by expression)
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name + ", bool");
-
-                var name = this.GetTableNamePluralized(table.Member);
-
-                var method = new CodeMemberMethod
+                // Bulk delete methods (by expression)
+                foreach (Table table in database.Tables)
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "BulkDelete" + name,
-                    ReturnType = voidTypeRef
-                };
+                    var tableType = new CodeTypeReference(table.Type.Name + ", bool");
 
-                method.Parameters.Add(new CodeParameterDeclarationExpression(
-                    new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
-                    "filerExpression"));
+                    var name = this.GetTableNamePluralized(table.Member);
 
-                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+                    var method = new CodeMemberMethod
+                    {
+                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkDelete" + name,
+                        ReturnType = voidTypeRef
+                    };
 
-                iface.Members.Add(method);
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
+                            "filerExpression"));
+
+                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+
+                    iface.Members.Add(method);
+                }
             }
 
             var methodSubmit = new CodeMemberMethod()
@@ -392,11 +408,19 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System"));
+            if (!this.NetCoreMode)
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("System"));
+            }
+
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("EntityFramework.Extensions"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));            
+
+            if (!this.NetCoreMode)
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+                nameSpace.Imports.Add(new CodeNamespaceImport("EntityFramework.Extensions"));
+            }
 
             var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "Repository"))
             {
@@ -546,63 +570,85 @@ namespace DbMetal.Generator
                 cls.Members.Add(method);
             }
 
-            // Bulk delete methods (by PK)
-            foreach (Table table in database.Tables)
+            if (!this.NetCoreMode)
             {
-                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-
-                if (!pkColumns.Any()) continue;
-
-                var method = new CodeMemberMethod()
+                // Bulk delete methods (by PK)
+                foreach (Table table in database.Tables)
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "BulkDelete" + table.Member,
-                    ReturnType = voidTypeRef
-                };
+                    var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
 
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                    if (!pkColumns.Any()) continue;
+
+                    var method = new CodeMemberMethod()
+                    {
+                        Attributes =
+                            MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkDelete" + table.Member,
+                        ReturnType = voidTypeRef
+                    };
+
+                    foreach (var col in pkColumns)
+                    {
+                        method.Parameters.Add(
+                            new CodeParameterDeclarationExpression(
+                                ToCodeTypeReference(col),
+                                GetStorageFieldName(col).Replace("_", "")));
+                    }
+
+                    var prop = new CodePropertyReferenceExpression(
+                        contextRef,
+                        this.GetTableNamePluralized(table.Member));
+                    var statement = new CodeMethodInvokeExpression(
+                        prop,
+                        "Where",
+                        new CodeSnippetExpression(
+                            "x => " + string.Join(
+                                " && ",
+                                pkColumns.Select(
+                                        c => "x." + c.Member + " == " + GetStorageFieldName(c).Replace("_", ""))
+                                    .ToArray())));
+
+                    method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
+
+                    method.Comments.Add(
+                        new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                    cls.Members.Add(method);
                 }
 
-                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
-                var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeSnippetExpression(
-                    "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " +
-                                                                        GetStorageFieldName(c).Replace("_", "")).ToArray())));
-
-                method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
-
-                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
-
-                cls.Members.Add(method);
-            }
-
-            // Bulk delete methods (by expression)
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name + ", bool");
-
-                var name = this.GetTableNamePluralized(table.Member);
-
-                var method = new CodeMemberMethod
+                // Bulk delete methods (by expression)
+                foreach (Table table in database.Tables)
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "BulkDelete" + name,
-                    ReturnType = voidTypeRef
-                };
+                    var tableType = new CodeTypeReference(table.Type.Name + ", bool");
 
-                method.Parameters.Add(new CodeParameterDeclarationExpression(
-                    new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
-                        "filerExpression"));
-   
-                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
-                var statement = new CodeMethodInvokeExpression(prop, "Where", new CodeVariableReferenceExpression("filerExpression"));
-                
-                method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
+                    var name = this.GetTableNamePluralized(table.Member);
 
-                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+                    var method = new CodeMemberMethod
+                    {
+                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkDelete" + name,
+                        ReturnType = voidTypeRef
+                    };
 
-                cls.Members.Add(method);
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
+                            "filerExpression"));
+
+                    var prop = new CodePropertyReferenceExpression(
+                        contextRef,
+                        this.GetTableNamePluralized(table.Member));
+                    var statement = new CodeMethodInvokeExpression(
+                        prop,
+                        "Where",
+                        new CodeVariableReferenceExpression("filerExpression"));
+
+                    method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
+
+                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+
+                    cls.Members.Add(method);
+                }
             }
 
             // SaveChanges method
@@ -646,13 +692,13 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Data.Entity"));
+            nameSpace.Imports.Add(new CodeNamespaceImport(this.NetCoreMode ? "Microsoft.EntityFrameworkCore" : "System.Data.Entity"));
 
             var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "EfContext"))
-                          {
-                              IsPartial = true,
-                              Attributes = MemberAttributes.Public | MemberAttributes.Final
-                          };
+            {
+                IsPartial = true,
+                Attributes = MemberAttributes.Public | MemberAttributes.Final
+            };
 
             cls.Comments.Add(new CodeCommentStatement("<summary> Database context </summary>", true));
 
@@ -665,7 +711,27 @@ namespace DbMetal.Generator
                 Parameters = { new CodeParameterDeclarationExpression(typeof(string), "connectionString") },
             };
 
-            constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("connectionString"));
+            if (!this.NetCoreMode)
+            {
+                constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("connectionString"));
+            }
+            else
+            {
+                var fieldConnStr = new CodeMemberField
+                {
+                    Attributes = MemberAttributes.Final,
+                    Name = "connectionString",
+                    Type = new CodeTypeReference(typeof(string))
+                };
+
+                cls.Members.Add(fieldConnStr);
+
+                var assignStatement = new CodeAssignStatement(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "connectionString"),
+                    new CodeArgumentReferenceExpression("connectionString"));
+
+                constructor.Statements.Add(assignStatement);
+            }
+
             constructor.Comments.Add(new CodeCommentStatement("<summary> Database context constructor </summary>", true));
             cls.Members.Add(constructor);
 
@@ -687,6 +753,59 @@ namespace DbMetal.Generator
                 field.Name += " { get; set; }";
 
                 cls.Members.Add(field);
+            }
+
+            if (this.NetCoreMode)
+            {
+                // OnModelCreating
+                var complexKeyTables = database.Tables
+                    .Select(x => new { table = x, pkCols = x.Type.Columns.Where(col => col.IsPrimaryKey).ToList() })
+                    .Where(x => x.pkCols.Count > 1).ToList();
+
+                if (complexKeyTables.Any())
+                {
+                    var method = new CodeMemberMethod
+                    {
+                        Attributes = MemberAttributes.Family | MemberAttributes.Override,
+                        Name = "OnModelCreating",
+                        ReturnType = new CodeTypeReference(typeof(void)),
+                        Parameters = { new CodeParameterDeclarationExpression(new CodeTypeReference("ModelBuilder"), "modelBuilder") }
+                    };
+
+                    foreach (var item in complexKeyTables)
+                    {
+                        var invk = new CodeMethodInvokeExpression(new CodeArgumentReferenceExpression("modelBuilder"),
+                            $"Entity<{item.table.Member}>");
+
+                        var statement = new CodeMethodInvokeExpression(invk, "HasKey", new CodeSnippetExpression(
+                            $"x => new {{ {string.Join(", ", item.pkCols.Select(x => "x." + x.Member))} }}"));
+
+                        method.Statements.Add(statement);
+                    }
+
+                    method.Comments.Add(new CodeCommentStatement("<summary> On model creating </summary>", true));
+
+                    cls.Members.Add(method);
+                }
+
+                // OnConfiguring
+                var methodConf = new CodeMemberMethod
+                {
+                    Attributes = MemberAttributes.Family | MemberAttributes.Override,
+                    Name = "OnConfiguring",
+                    ReturnType = new CodeTypeReference(typeof(void)),
+                    Parameters = { new CodeParameterDeclarationExpression(new CodeTypeReference("DbContextOptionsBuilder"), "optionsBuilder") }
+                };
+
+                methodConf.Statements.Add(
+                    new CodeMethodInvokeExpression(
+                        new CodeArgumentReferenceExpression("optionsBuilder"),
+                        "UseNpgsql",
+                        new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "connectionString")));
+
+                methodConf.Comments.Add(new CodeCommentStatement("<summary> On configuring </summary>", true));
+
+                cls.Members.Add(methodConf);
             }
 
             nameSpace.Types.Add(cls);
@@ -719,7 +838,11 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+
+            if (!this.NetCoreMode)
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+            }
 
             var cls = new CodeTypeDeclaration("Mock" + database.Class.Replace("Context", "Repository"))
             {
@@ -741,7 +864,7 @@ namespace DbMetal.Generator
                 var field = new CodeMemberField
                 {
                     Attributes = MemberAttributes.Final,
-                    Name = privateListNames[table] + " = new List<" + table.Type.Name + ">()",
+                    Name = $"{privateListNames[table]} = new List<{table.Type.Name}>()",
                     Type = new CodeTypeReference("List", tableType),
                 };
 
@@ -901,108 +1024,148 @@ namespace DbMetal.Generator
 
                 cls.Members.Add(method);
             }
-            
-            // Delete methods (by PK)
-            foreach (Table table in database.Tables)
+
+            if (!this.NetCoreMode)
             {
-                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-                if (!pkColumns.Any()) continue;
-
-                var tableType = new CodeTypeReference(table.Type.Name);
-                string paramName = GetLowerCamelCase(table.Member);
-
-                var method = new CodeMemberMethod()
+                // Delete methods (by PK)
+                foreach (Table table in database.Tables)
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "BulkDelete" + table.Member,
-                    ReturnType = voidTypeRef
-                };
+                    var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
+                    if (!pkColumns.Any()) continue;
 
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                    var tableType = new CodeTypeReference(table.Type.Name);
+                    string paramName = GetLowerCamelCase(table.Member);
+
+                    var method = new CodeMemberMethod
+                    {
+                        Attributes =
+                            MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkDelete" + table.Member,
+                        ReturnType = voidTypeRef
+                    };
+
+                    foreach (var col in pkColumns)
+                    {
+                        method.Parameters.Add(
+                            new CodeParameterDeclarationExpression(
+                                ToCodeTypeReference(col),
+                                GetStorageFieldName(col).Replace("_", "")));
+                    }
+
+                    var paramExpression = new CodeVariableReferenceExpression(paramName);
+
+                    // Getting an item by primary key fields
+                    method.Statements.Add(new CodeVariableDeclarationStatement(tableType, paramName));
+                    method.Statements.Add(
+                        new CodeAssignStatement(
+                            paramExpression,
+                            new CodeMethodInvokeExpression(
+                                new CodeThisReferenceExpression(),
+                                "Get" + table.Member,
+                                pkColumns.Select(
+                                        c => new CodeVariableReferenceExpression(
+                                            GetStorageFieldName(c).Replace("_", "")))
+                                    .ToArray())));
+
+                    var deleteStatement = new CodeExpressionStatement(
+                        new CodeMethodInvokeExpression(
+                            new CodeFieldReferenceExpression(
+                                new CodeThisReferenceExpression(),
+                                privateListNames[table]),
+                            "Remove",
+                            paramExpression));
+
+                    var ifNullStatement = new CodeConditionStatement(
+                        new CodeBinaryOperatorExpression(
+                            paramExpression,
+                            CodeBinaryOperatorType.IdentityInequality,
+                            new CodePrimitiveExpression(null)),
+                        new CodeStatement[] { deleteStatement });
+
+                    method.Statements.Add(ifNullStatement);
+
+                    method.Comments.Add(
+                        new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+
+                    cls.Members.Add(method);
                 }
 
-                var paramExpression = new CodeVariableReferenceExpression(paramName);
+                // Bulk delete methods (by expression)
+                foreach (Table table in database.Tables)
+                {
+                    var tableType = new CodeTypeReference(table.Type.Name + ", bool");
 
-                // Getting an item by primary key fields
-                method.Statements.Add(new CodeVariableDeclarationStatement(tableType, paramName));
-                method.Statements.Add(new CodeAssignStatement(paramExpression,
-                    new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Get" + table.Member,
-                    pkColumns.Select(c => new CodeVariableReferenceExpression(GetStorageFieldName(c).Replace("_", ""))).ToArray())));
+                    var name = this.GetTableNamePluralized(table.Member);
 
-                var deleteStatement = new CodeExpressionStatement(new CodeMethodInvokeExpression(
-                    new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), privateListNames[table]),
-                    "Remove",
-                    paramExpression));
+                    var method = new CodeMemberMethod
+                    {
+                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkDelete" + name,
+                        ReturnType = voidTypeRef
+                    };
 
-                var ifNullStatement = new CodeConditionStatement(new CodeBinaryOperatorExpression(paramExpression, 
-                    CodeBinaryOperatorType.IdentityInequality,
-                    new CodePrimitiveExpression(null)), new CodeStatement[] { deleteStatement });
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
+                            "filerExpression"));
 
-                method.Statements.Add(ifNullStatement);
+                    var listField = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), name);
 
-                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
+                    var filtered = new CodeMethodInvokeExpression(
+                        new CodeMethodInvokeExpression(
+                            listField,
+                            "Where",
+                            new CodeVariableReferenceExpression("filerExpression")),
+                        "ToList");
 
-                cls.Members.Add(method);
-            }
+                    var itemsDecl = new CodeVariableDeclarationStatement(
+                        new CodeTypeReference("var"),
+                        "items",
+                        filtered);
 
-            // Bulk delete methods (by expression)
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name + ", bool");
+                    var iterator = new CodeVariableDeclarationStatement(
+                        typeof(int),
+                        "i",
+                        new CodePrimitiveExpression(0));
 
-                var name = this.GetTableNamePluralized(table.Member);
+                    var itemsRef = new CodeVariableReferenceExpression("items");
 
-                var method = new CodeMemberMethod
-                                 {
-                                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                     Name = "BulkDelete" + name,
-                                     ReturnType = voidTypeRef
-                                 };
-
-                method.Parameters.Add(new CodeParameterDeclarationExpression(
-                    new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
-                    "filerExpression"));
-
-                var listField = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), name);
-
-                var filtered = new CodeMethodInvokeExpression(
-                    new CodeMethodInvokeExpression(listField, "Where", new CodeVariableReferenceExpression("filerExpression")),
-                    "ToList");
-
-                var itemsDecl = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "items", filtered);
-
-                var iterator = new CodeVariableDeclarationStatement(typeof(int), "i", new CodePrimitiveExpression(0));
-
-                var itemsRef = new CodeVariableReferenceExpression("items");
-
-                // Creates a for loop with i
-                var forLoop = new CodeIterationStatement(
-                    new CodeAssignStatement(new CodeVariableReferenceExpression("i"), new CodePrimitiveExpression(0)),
-                    new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("i"),
-                        CodeBinaryOperatorType.LessThan,
-                        new CodePropertyReferenceExpression(itemsRef, "Count")),
-                    new CodeAssignStatement(new CodeVariableReferenceExpression("i"),
+                    // Creates a for loop with i
+                    var forLoop = new CodeIterationStatement(
+                        new CodeAssignStatement(
+                            new CodeVariableReferenceExpression("i"),
+                            new CodePrimitiveExpression(0)),
                         new CodeBinaryOperatorExpression(
                             new CodeVariableReferenceExpression("i"),
-                            CodeBinaryOperatorType.Add,
-                            new CodePrimitiveExpression(1))),
-                    new CodeStatement[]
-                        {
-                            new CodeExpressionStatement(new CodeMethodInvokeExpression(
-                                new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), privateListNames[table]),
-                                "Remove",
-                                new CodeArrayIndexerExpression(itemsRef, new CodeVariableReferenceExpression("i"))))
-                        });
+                            CodeBinaryOperatorType.LessThan,
+                            new CodePropertyReferenceExpression(itemsRef, "Count")),
+                        new CodeAssignStatement(
+                            new CodeVariableReferenceExpression("i"),
+                            new CodeBinaryOperatorExpression(
+                                new CodeVariableReferenceExpression("i"),
+                                CodeBinaryOperatorType.Add,
+                                new CodePrimitiveExpression(1))),
+                        new CodeStatement[]
+                            {
+                                new CodeExpressionStatement(
+                                    new CodeMethodInvokeExpression(
+                                        new CodeFieldReferenceExpression(
+                                            new CodeThisReferenceExpression(),
+                                            privateListNames[table]),
+                                        "Remove",
+                                        new CodeArrayIndexerExpression(
+                                            itemsRef,
+                                            new CodeVariableReferenceExpression("i"))))
+                            });
 
-                method.Statements.Add(itemsDecl);
-                method.Statements.Add(iterator);
-                method.Statements.Add(forLoop);
+                    method.Statements.Add(itemsDecl);
+                    method.Statements.Add(iterator);
+                    method.Statements.Add(forLoop);
 
-                method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
 
-                cls.Members.Add(method);
+                    cls.Members.Add(method);
+                }
             }
 
             var methodSubmit = new CodeMemberMethod()
@@ -1170,7 +1333,7 @@ namespace DbMetal.Generator
                     new CodeAttributeArgument(new CodePrimitiveExpression(column.Name))
                 };
 
-                if (column.IsPrimaryKey && pkColumns.Count > 1)
+                if (!this.NetCoreMode && column.IsPrimaryKey && pkColumns.Count > 1)
                 {
                     var index = pkColumns.FindIndex(x => x == column);
                     columnAttrArgs.Add(new CodeAttributeArgument("Order", new CodePrimitiveExpression(index)));                    
@@ -1187,7 +1350,7 @@ namespace DbMetal.Generator
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {columnMember} </summary>", true));
 
-                if (column.IsPrimaryKey)
+                if (column.IsPrimaryKey && (!this.NetCoreMode || pkColumns.Count == 1))
                 {
                     field.CustomAttributes.Add(new CodeAttributeDeclaration("Key"));
                 }
