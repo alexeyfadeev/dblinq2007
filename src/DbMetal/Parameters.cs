@@ -78,7 +78,7 @@ namespace DbMetal
         /// <summary>
         /// If present, write out C# code
         /// </summary>
-        public string Code { get; set; }
+        public string Code => this.ContextName + "Context.cs";
 
         /// <summary>
         /// if present, write out DBML XML representing the DB
@@ -196,9 +196,9 @@ namespace DbMetal
         public IList<string> Extra = new List<string>();
 
         /// <summary>
-        /// DB-context class naming mode
+        /// DB-context class name
         /// </summary>
-        public string ContextNameMode { get; set; }
+        public string ContextName { get; set; }
 
         /// <summary>
         /// Enable Fast-insert method
@@ -238,7 +238,6 @@ namespace DbMetal
             MemberAttributes = new List<string>();
             GenerateTimestamps = true;
             EntityInterfaces = new []{ "INotifyPropertyChanging", "INotifyPropertyChanged" };
-            ContextNameMode = "wordextract";
         }
 
         public void Parse(IList<string> args)
@@ -277,10 +276,6 @@ namespace DbMetal
                 { "with-sql-dialect=",
                   "IVendor implementation {TYPE}.",
                   type => SqlDialectType = type },
-                 // SQLMetal compatible
-                { "code=",
-                  "Output as source code to {FILE}. Cannot be used with /dbml option.",
-                  file => Code = file },
                  // SQLMetal compatible
                 { "dbml=",
                   "Output as dbml to {FILE}. Cannot be used with /map option.",
@@ -347,9 +342,8 @@ namespace DbMetal
                   "Show this help",
                   v => Help = v != null },
                 { "context-name=",
-                  "DB-context class naming mode " + 
-                  "(default: wordextract; may be: wordextract+context, wordcase, wordcase+context)",
-                  v => ContextNameMode = v ?? "wordextract" },
+                  "DB-context class name ",
+                  v => ContextName = v },
                 { "fast-insert",
                   "Enables ExecuteFastInsert method",
                   v => FastInsert = v != null },

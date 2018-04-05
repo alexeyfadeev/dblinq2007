@@ -112,12 +112,16 @@ namespace DbMetal.Generator
                     });
         }
 
-        public void WriteEfContext(TextWriter textWriter, Database dbSchema, GenerationContext context, string provider)
+        public void WriteEfContext(TextWriter textWriter,
+            Database dbSchema,
+            GenerationContext context,
+            string contextName,
+            string provider)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GenerateEfContextDomModel(dbSchema, provider.ToLower()), textWriter,
+                GenerateEfContextDomModel(dbSchema, contextName, provider.ToLower()), textWriter,
                 new CodeGeneratorOptions()
                     {
                         BracingStyle = "C",
@@ -689,7 +693,7 @@ namespace DbMetal.Generator
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateEfContextDomModel(Database database, string provider)
+        protected virtual CodeNamespace GenerateEfContextDomModel(Database database, string contextName, string provider)
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
 
@@ -697,7 +701,7 @@ namespace DbMetal.Generator
 
             nameSpace.Imports.Add(new CodeNamespaceImport(this.NetCoreMode ? "Microsoft.EntityFrameworkCore" : "System.Data.Entity"));
 
-            var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "EfContext"))
+            var cls = new CodeTypeDeclaration(contextName + "EfContext")
             {
                 IsPartial = true,
                 Attributes = MemberAttributes.Public | MemberAttributes.Final

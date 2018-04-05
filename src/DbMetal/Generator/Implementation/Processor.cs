@@ -230,13 +230,6 @@ namespace DbMetal.Generator.Implementation
                 return;
             }
 
-            /*
-            if (string.IsNullOrEmpty(filename))
-                filename = dbSchema.Class;
-            if (String.IsNullOrEmpty(Path.GetExtension(filename)))
-                filename += codeGenerator.Extension;
-                */
-
             var codeGenerator = (CodeDomGenerator)generator;
 
             codeGenerator.NetCoreMode = parameters.NetCoreMode;
@@ -244,17 +237,17 @@ namespace DbMetal.Generator.Implementation
             var generationContext = new GenerationContext(parameters, schemaLoader);
 
             // EfContext
-            filename = dbSchema.Class.Replace("Context", "EfContext.cs");
+            filename = parameters.ContextName + "EfContext.cs";
 
             using (var streamWriter = new StreamWriter(filename))
             {
-                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext, parameters.Provider);
+                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext, parameters.ContextName, parameters.Provider);
             }
 
             this.ProcessFile(filename);
 
             // Entities
-            string efFileName = dbSchema.Class.Replace("Context", "Entities.cs");
+            string efFileName = parameters.ContextName + "Entities.cs";
             parameters.Write("<<< writing EF models into file '{0}'", efFileName);
 
             using (var streamWriteref = new StreamWriter(efFileName))
@@ -268,7 +261,7 @@ namespace DbMetal.Generator.Implementation
             if (parameters.IRepository)
             {
                 // IRepository
-                string interfaceFileName = "I" + dbSchema.Class.Replace("Context", "Repository.cs");
+                string interfaceFileName = $"I{parameters.ContextName}Repository.cs";
                 parameters.Write("<<< writing IRepository into file '{0}'", interfaceFileName);
 
                 using (var streamWriterIContext = new StreamWriter(interfaceFileName))
@@ -279,7 +272,7 @@ namespace DbMetal.Generator.Implementation
                 this.ProcessFile(interfaceFileName);
 
                 // Repository
-                string repoFileName = dbSchema.Class.Replace("Context", "Repository.cs");
+                string repoFileName = parameters.ContextName + "Repository.cs";
                 parameters.Write("<<< writing Repository into file '{0}'", repoFileName);
 
                 using (var streamWriterRepo = new StreamWriter(repoFileName))
@@ -290,7 +283,7 @@ namespace DbMetal.Generator.Implementation
                 this.ProcessFile(repoFileName);
 
                 // MockRepository
-                string mockFileName = "Mock" + dbSchema.Class.Replace("Context", "Repository.cs");
+                string mockFileName = $"Mock{parameters.ContextName}Repository.cs";
 
                 parameters.Write("<<< writing MockContext into file '{0}'", mockFileName);
 
@@ -319,7 +312,8 @@ namespace DbMetal.Generator.Implementation
 
                 dbSchema = schemaLoader.Load(parameters.Database, nameAliases,
                     new NameFormat(parameters.Pluralize, GetCase(parameters), new CultureInfo(parameters.Culture)),
-                    parameters.Sprocs, parameters.Namespace, parameters.Namespace, parameters.ContextNameMode.ToLower());
+                    parameters.Sprocs, parameters.Namespace, parameters.Namespace, parameters.ContextName);
+
                 dbSchema.Provider = parameters.Provider;
                 dbSchema.Tables.Sort(new LambdaComparer<Table>((x, y) => (x.Type.Name.CompareTo(y.Type.Name))));
                 foreach (var table in dbSchema.Tables)
