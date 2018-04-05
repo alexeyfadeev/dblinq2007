@@ -248,7 +248,7 @@ namespace DbMetal.Generator.Implementation
 
             using (var streamWriter = new StreamWriter(filename))
             {
-                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext);
+                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext, parameters.Provider);
             }
 
             this.ProcessFile(filename);
@@ -273,7 +273,7 @@ namespace DbMetal.Generator.Implementation
 
                 using (var streamWriterIContext = new StreamWriter(interfaceFileName))
                 {
-                    codeGenerator.WriteIRepository(streamWriterIContext, dbSchema, generationContext);
+                    codeGenerator.WriteIRepository(streamWriterIContext, dbSchema, generationContext, parameters.BulkExtensions);
                 }
 
                 this.ProcessFile(interfaceFileName);
@@ -284,7 +284,7 @@ namespace DbMetal.Generator.Implementation
 
                 using (var streamWriterRepo = new StreamWriter(repoFileName))
                 {
-                    codeGenerator.WriteRepository(streamWriterRepo, dbSchema, generationContext);
+                    codeGenerator.WriteRepository(streamWriterRepo,dbSchema, generationContext, parameters.BulkExtensions);
                 }
 
                 this.ProcessFile(repoFileName);
@@ -299,7 +299,8 @@ namespace DbMetal.Generator.Implementation
                     codeGenerator.WriteMockRepository(
                         streamWriterMockContext,
                         dbSchema,
-                        generationContext);
+                        generationContext,
+                        parameters.BulkExtensions);
                 }
 
                 this.ProcessFile(mockFileName);

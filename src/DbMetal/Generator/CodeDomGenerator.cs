@@ -112,12 +112,12 @@ namespace DbMetal.Generator
                     });
         }
 
-        public void WriteEfContext(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WriteEfContext(TextWriter textWriter, Database dbSchema, GenerationContext context, string provider)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GenerateEfContextDomModel(dbSchema), textWriter,
+                GenerateEfContextDomModel(dbSchema, provider.ToLower()), textWriter,
                 new CodeGeneratorOptions()
                     {
                         BracingStyle = "C",
@@ -125,12 +125,13 @@ namespace DbMetal.Generator
                     });
         }
 
-        public void WriteIRepository(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WriteIRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                this.GenerateIRepositoryDomModel(dbSchema), textWriter,
+                this.GenerateIRepositoryDomModel(dbSchema, bulkExtensions),
+                textWriter,
                 new CodeGeneratorOptions()
                 {
                     BracingStyle = "C",
@@ -138,12 +139,13 @@ namespace DbMetal.Generator
                 });
         }
 
-        public void WriteRepository(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WriteRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                this.GenerateRepositoryDomModel(dbSchema), textWriter,
+                this.GenerateRepositoryDomModel(dbSchema, bulkExtensions),
+                textWriter,
                 new CodeGeneratorOptions()
                     {
                         BracingStyle = "C",
@@ -151,12 +153,13 @@ namespace DbMetal.Generator
                     });
         }
 
-        public void WriteMockRepository(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WriteMockRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                this.GenerateMockRepositoryDomModel(dbSchema), textWriter,
+                this.GenerateMockRepositoryDomModel(dbSchema, bulkExtensions),
+                textWriter,
                 new CodeGeneratorOptions()
                 {
                     BracingStyle = "C",
@@ -221,7 +224,7 @@ namespace DbMetal.Generator
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateIRepositoryDomModel(Database database)
+        protected virtual CodeNamespace GenerateIRepositoryDomModel(Database database, bool bulkExtensions)
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
@@ -231,7 +234,7 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
             }
@@ -332,7 +335,7 @@ namespace DbMetal.Generator
                 iface.Members.Add(method);
             }
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 // Bulk delete methods (by PK)
                 foreach (Table table in database.Tables)
@@ -402,13 +405,13 @@ namespace DbMetal.Generator
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateRepositoryDomModel(Database database)
+        protected virtual CodeNamespace GenerateRepositoryDomModel(Database database, bool bulkExtensions)
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
 
             CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             }
@@ -416,10 +419,10 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));            
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
-                nameSpace.Imports.Add(new CodeNamespaceImport("EntityFramework.Extensions"));
+                nameSpace.Imports.Add(new CodeNamespaceImport("Z.EntityFramework.Plus"));
             }
 
             var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "Repository"))
@@ -570,7 +573,7 @@ namespace DbMetal.Generator
                 cls.Members.Add(method);
             }
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 // Bulk delete methods (by PK)
                 foreach (Table table in database.Tables)
@@ -686,7 +689,7 @@ namespace DbMetal.Generator
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateEfContextDomModel(Database database)
+        protected virtual CodeNamespace GenerateEfContextDomModel(Database database, string provider)
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
 
@@ -797,10 +800,26 @@ namespace DbMetal.Generator
                     Parameters = { new CodeParameterDeclarationExpression(new CodeTypeReference("DbContextOptionsBuilder"), "optionsBuilder") }
                 };
 
+                var coreProviders = new Dictionary<string, string>
+                    {
+                        { "SqlServer", "UseSqlServer" },
+                        { "PostgreSQL", "UseNpgsql" },
+                        { "MySQL", "UseMySql" },
+                        { "SQLite", "UseSqlite" },
+                        { "SqlCe", "UseSqlCe" },
+                        { "Firebird", "UseFirebirdSql" }
+                    }
+                    .ToDictionary(x => x.Key.ToLower(), x => x.Value);
+
+                if (!coreProviders.ContainsKey(provider))
+                {
+                    throw new NotSupportedException("Provider not supported: " + provider);
+                }
+
                 methodConf.Statements.Add(
                     new CodeMethodInvokeExpression(
                         new CodeArgumentReferenceExpression("optionsBuilder"),
-                        "UseNpgsql",
+                        coreProviders[provider],
                         new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "connectionString")));
 
                 methodConf.Comments.Add(new CodeCommentStatement("<summary> On configuring </summary>", true));
@@ -829,7 +848,7 @@ namespace DbMetal.Generator
             return ret;
         }
 
-        protected virtual CodeNamespace GenerateMockRepositoryDomModel(Database database)
+        protected virtual CodeNamespace GenerateMockRepositoryDomModel(Database database, bool bulkExtensions)
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
@@ -839,7 +858,7 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
             }
@@ -1025,7 +1044,7 @@ namespace DbMetal.Generator
                 cls.Members.Add(method);
             }
 
-            if (!this.NetCoreMode)
+            if (bulkExtensions)
             {
                 // Delete methods (by PK)
                 foreach (Table table in database.Tables)

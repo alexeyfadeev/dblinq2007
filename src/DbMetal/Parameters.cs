@@ -215,6 +215,11 @@ namespace DbMetal
         /// </summary>
         public bool NetCoreMode { get; set; }
 
+        /// <summary>
+        /// Use Z.EntityFramework.Plus extension
+        /// </summary>
+        public bool BulkExtensions { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
@@ -354,6 +359,9 @@ namespace DbMetal
                 { "core",
                   "Enables .Net Core mode",
                   v => this.NetCoreMode = v != null },
+                { "bulk",
+                  "Includes Z.EntityFramework.Plus bulk extension",
+                  v => this.BulkExtensions = v != null },
             };
 
             Extra = Options.Parse(args);
