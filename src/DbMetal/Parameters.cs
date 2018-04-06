@@ -203,7 +203,7 @@ namespace DbMetal
         /// <summary>
         /// Enable Fast-insert method
         /// </summary>
-        public bool FastInsert { get; set; }
+        public bool MultiInsert { get; set; }
 
         /// <summary>
         /// Generate IRepository interface, Repository and MockRepository partial implementation
@@ -219,6 +219,11 @@ namespace DbMetal
         /// Use Z.EntityFramework.Plus extension
         /// </summary>
         public bool BulkExtensions { get; set; }
+
+        /// <summary>
+        /// Separate folder for entity classes
+        /// </summary>
+        public string EntityFolder { get; set; }
 
         TextWriter log;
         public TextWriter Log
@@ -343,10 +348,10 @@ namespace DbMetal
                   v => Help = v != null },
                 { "context-name=",
                   "DB-context class name ",
-                  v => ContextName = v },
-                { "fast-insert",
-                  "Enables ExecuteFastInsert method",
-                  v => FastInsert = v != null },
+                  v => this.ContextName = v },
+                { "multi-insert",
+                  "Enables ExecuteMultiInsert method",
+                  v => this.MultiInsert = v != null },
                 { "repository",
                   "Enables Repository, IRepository and MockRepository generating",
                   v => this.IRepository = v != null },
@@ -356,6 +361,9 @@ namespace DbMetal
                 { "bulk",
                   "Includes Z.EntityFramework.Plus bulk extension",
                   v => this.BulkExtensions = v != null },
+                { "entity-folder=",
+                  "Separate folder for entity classes ",
+                  v => this.EntityFolder = v },
             };
 
             Extra = Options.Parse(args);

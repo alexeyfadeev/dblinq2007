@@ -77,6 +77,8 @@ namespace DbMetal.Generator
 
         public bool NetCoreMode { get; set; }
 
+        public string EntityFolder { get; set; }
+
         public void CheckLanguageWords(string cultureName)
         {
             if (LanguageWords == null)
@@ -99,13 +101,13 @@ namespace DbMetal.Generator
         {
         }
 
-        public void WriteEf(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        public void WriteEf(TextWriter textWriter, Database dbSchema, Table table, GenerationContext context)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GenerateEfDomModel(dbSchema), textWriter,
-                new CodeGeneratorOptions()
+                GenerateEfDomModel(dbSchema, table), textWriter,
+                new CodeGeneratorOptions
                     {
                         BracingStyle = "C",
                         IndentString = "\t",
@@ -213,17 +215,20 @@ namespace DbMetal.Generator
 
         protected GenerationContext Context { get; set; }
 
-        protected virtual CodeNamespace GenerateEfDomModel(Database database)
+        protected virtual CodeNamespace GenerateEfDomModel(Database database, Table table)
         {
-            CodeNamespace nameSpace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+            string nameSpaceName = Context.Parameters.Namespace ?? database.ContextNamespace;
+            if (!string.IsNullOrWhiteSpace(this.EntityFolder))
+            {
+                nameSpaceName = $"{nameSpaceName}.{this.EntityFolder}";
+            }
+
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
             nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations.Schema"));
 
-            foreach (Table table in database.Tables)
-            {
-                nameSpace.Types.Add(this.GenerateEfClass(table, database));
-            }
+            nameSpace.Types.Add(this.GenerateEfClass(table, database));
 
             return nameSpace;
         }
@@ -232,7 +237,9 @@ namespace DbMetal.Generator
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
-            CodeNamespace nameSpace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+            string nameSpaceName = Context.Parameters.Namespace ?? database.ContextNamespace;
+
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
             nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
@@ -241,6 +248,11 @@ namespace DbMetal.Generator
             if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(this.EntityFolder))
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
             var iface = new CodeTypeDeclaration("I" + database.Class.Replace("Context", "Repository"))
@@ -413,7 +425,9 @@ namespace DbMetal.Generator
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
 
-            CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
+            string nameSpaceName = Context.Parameters.Namespace ?? database.ContextNamespace;
+
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
             if (bulkExtensions)
             {
@@ -429,6 +443,11 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport("Z.EntityFramework.Plus"));
             }
 
+            if (!string.IsNullOrWhiteSpace(this.EntityFolder))
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
+            }
+
             var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "Repository"))
             {
                 IsPartial = true,
@@ -439,7 +458,7 @@ namespace DbMetal.Generator
 
             cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
 
-            var contextType = new CodeTypeReference(database.Class.Replace("Context", "EfContext"));
+            var contextType = new CodeTypeReference(database.Class.Replace("Context", "DbContext"));
 
             // Constructor
             var constructor = new CodeConstructor
@@ -697,11 +716,18 @@ namespace DbMetal.Generator
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
 
-            CodeNamespace nameSpace = new CodeNamespace(this.Context.Parameters.Namespace ?? database.ContextNamespace);
+            string nameSpaceName = this.Context.Parameters.Namespace ?? database.ContextNamespace;
+
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
             nameSpace.Imports.Add(new CodeNamespaceImport(this.NetCoreMode ? "Microsoft.EntityFrameworkCore" : "System.Data.Entity"));
 
-            var cls = new CodeTypeDeclaration(contextName + "EfContext")
+            if (!string.IsNullOrWhiteSpace(this.EntityFolder))
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
+            }
+
+            var cls = new CodeTypeDeclaration(contextName + "DbContext")
             {
                 IsPartial = true,
                 Attributes = MemberAttributes.Public | MemberAttributes.Final
@@ -726,7 +752,7 @@ namespace DbMetal.Generator
             {
                 var fieldConnStr = new CodeMemberField
                 {
-                    Attributes = MemberAttributes.Final,
+                    Attributes = MemberAttributes.Final | MemberAttributes.Private,
                     Name = "connectionString",
                     Type = new CodeTypeReference(typeof(string))
                 };
@@ -856,7 +882,9 @@ namespace DbMetal.Generator
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
-            CodeNamespace nameSpace = new CodeNamespace(Context.Parameters.Namespace ?? database.ContextNamespace);
+            string nameSpaceName = Context.Parameters.Namespace ?? database.ContextNamespace;
+
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName); ;
 
             nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
@@ -865,6 +893,11 @@ namespace DbMetal.Generator
             if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(this.EntityFolder))
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
             var cls = new CodeTypeDeclaration("Mock" + database.Class.Replace("Context", "Repository"))
@@ -886,7 +919,7 @@ namespace DbMetal.Generator
 
                 var field = new CodeMemberField
                 {
-                    Attributes = MemberAttributes.Final,
+                    Attributes = MemberAttributes.Final | MemberAttributes.Private,
                     Name = $"{privateListNames[table]} = new List<{table.Type.Name}>()",
                     Type = new CodeTypeReference("List", tableType),
                 };
@@ -1324,7 +1357,7 @@ namespace DbMetal.Generator
             this.WriteCustomTypes(cls, table);
 
             // For InsertSql Property
-            if (this.Context.Parameters.FastInsert)
+            if (this.Context.Parameters.MultiInsert)
             {
                 cls.BaseTypes.Add("IInsertSqlEntity");
             }
@@ -1408,7 +1441,7 @@ namespace DbMetal.Generator
                 }
 
                 // Add to InsertSql Property
-                if (this.Context.Parameters.FastInsert)
+                if (this.Context.Parameters.MultiInsert)
                 {
                     var t = System.Type.GetType(column.Type);
                     bool isNumericType = numericTypes.Contains(t);
@@ -1546,7 +1579,7 @@ namespace DbMetal.Generator
                 }
             }
 
-            if (Context.Parameters.FastInsert)
+            if (Context.Parameters.MultiInsert)
             {
                 propertyInsert.GetStatements.Add(AddTextExpressionToSb(")", sbReference));
 

@@ -174,7 +174,7 @@ namespace DbMetal.Generator.Implementation
                 if (string.IsNullOrEmpty(filename))
                     filename = dbSchema.Name;
 
-                parameters.Write("<<< writing C# classes into file '{0}'", filename);
+                parameters.Write("<<< writing C# classes into file '{0}'", parameters.ContextName + "DbContext.cs");
                 GenerateCode(parameters, dbSchema, schemaLoader, filename);
 
             }
@@ -233,11 +233,12 @@ namespace DbMetal.Generator.Implementation
             var codeGenerator = (CodeDomGenerator)generator;
 
             codeGenerator.NetCoreMode = parameters.NetCoreMode;
+            codeGenerator.EntityFolder = parameters.EntityFolder;
 
             var generationContext = new GenerationContext(parameters, schemaLoader);
 
             // EfContext
-            filename = parameters.ContextName + "EfContext.cs";
+            filename = parameters.ContextName + "DbContext.cs";
 
             using (var streamWriter = new StreamWriter(filename))
             {
@@ -246,16 +247,31 @@ namespace DbMetal.Generator.Implementation
 
             this.ProcessFile(filename);
 
-            // Entities
-            string efFileName = parameters.ContextName + "Entities.cs";
-            parameters.Write("<<< writing EF models into file '{0}'", efFileName);
+            string entityDirPrefix = "";
 
-            using (var streamWriteref = new StreamWriter(efFileName))
+            if (!string.IsNullOrWhiteSpace(parameters.EntityFolder))
             {
-                codeGenerator.WriteEf(streamWriteref, dbSchema, generationContext);
+                if (!Directory.Exists(parameters.EntityFolder))
+                {
+                    Directory.CreateDirectory(parameters.EntityFolder);
+                }
+
+                entityDirPrefix = parameters.EntityFolder + "\\";
             }
 
-            this.ProcessFile(efFileName, true);
+            // Entities
+            foreach (var table in dbSchema.Tables)
+            {
+                string efFileName = $"{entityDirPrefix}{table.Member}.cs";
+                parameters.Write("<<< writing EF models into file '{0}'", efFileName);
+
+                using (var streamWriteref = new StreamWriter(efFileName))
+                {
+                    codeGenerator.WriteEf(streamWriteref, dbSchema, table, generationContext);
+                }
+
+                this.ProcessFile(efFileName, true);
+            }
 
             // Generate Repository into separate files, if it's needed
             if (parameters.IRepository)
