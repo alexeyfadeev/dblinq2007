@@ -235,6 +235,7 @@ namespace DbMetal.Generator.Implementation
             codeGenerator.NetCoreMode = parameters.NetCoreMode;
             codeGenerator.EntityFolder = parameters.EntityFolder;
             codeGenerator.ContextName = parameters.ContextName;
+            codeGenerator.SqlXml = parameters.Provider == "SqlServer";
 
             var generationContext = new GenerationContext(parameters, schemaLoader);
 

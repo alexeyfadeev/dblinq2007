@@ -81,6 +81,8 @@ namespace DbMetal.Generator
 
         public string ContextName { get; set; }
 
+        public bool SqlXml { get; set; }
+
         public void CheckLanguageWords(string cultureName)
         {
             if (LanguageWords == null)
@@ -459,7 +461,7 @@ namespace DbMetal.Generator
 
             cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
 
-            var contextType = new CodeTypeReference(database.Class.Replace("Context", "DbContext"));
+            var contextType = new CodeTypeReference(this.ContextName + "DbContext");
 
             // Constructor
             var constructor = new CodeConstructor
@@ -907,7 +909,7 @@ namespace DbMetal.Generator
                 IsPartial = true
             };
 
-            cls.BaseTypes.Add(new CodeTypeReference("I" + database.Class.Replace("Context", "Repository")));
+            cls.BaseTypes.Add(new CodeTypeReference($"I{this.ContextName}Repository"));
             cls.BaseTypes.Add(new CodeTypeReference("IDisposable"));
 
             var privateListNames = new Dictionary<Table, string>();
@@ -1370,11 +1372,11 @@ namespace DbMetal.Generator
             var sbReference = new CodeVariableReferenceExpression("sb");
             var propertyInsert = new CodeMemberProperty();
             propertyInsert.Type = new CodeTypeReference(typeof(string));
-            propertyInsert.Name = "InsertSql";
+            propertyInsert.Name = this.SqlXml ? "SqlXml" : "InsertSql";
             propertyInsert.Attributes = MemberAttributes.Public | MemberAttributes.Final;
             propertyInsert.HasGet = true;
             propertyInsert.GetStatements.Add(sbDeclare);
-            propertyInsert.GetStatements.Add(AddTextExpressionToSb("(", sbReference));
+            propertyInsert.GetStatements.Add(AddTextExpressionToSb(this.SqlXml ? "<Item>\n" : "(", sbReference));
 
             bool firstColumn = true;
             var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
@@ -1423,18 +1425,18 @@ namespace DbMetal.Generator
 
                 if (relatedAssociation != null)
                 {
-                    var fieldRel = new CodeMemberField(relatedAssociation.Member, relatedAssociation.Member)
-                                    {
-                                        Attributes = MemberAttributes.Static | MemberAttributes.FamilyAndAssembly,
-                                        CustomAttributes =
-                                        {
-                                            new CodeAttributeDeclaration("ForeignKey",
-                                                new CodeAttributeArgument(
-                                                    new CodeMethodInvokeExpression(null,
-                                                        "nameof",
-                                                         new CodeVariableReferenceExpression(relatedAssociation.ThisKey))))
-                                        }
-                                    };
+                    var fieldRel = new CodeMemberField(relatedAssociation.Type, relatedAssociation.Member)
+                    {
+                        Attributes = MemberAttributes.Static | MemberAttributes.FamilyAndAssembly,
+                        CustomAttributes =
+                        {
+                            new CodeAttributeDeclaration("ForeignKey",
+                                new CodeAttributeArgument(
+                                    new CodeMethodInvokeExpression(null,
+                                        "nameof",
+                                         new CodeVariableReferenceExpression(relatedAssociation.ThisKey))))
+                        }
+                    };
 
                     fieldRel.Name += " { get; set; }";
 
@@ -1442,7 +1444,7 @@ namespace DbMetal.Generator
                 }
 
                 // Add to InsertSql Property
-                if (this.Context.Parameters.MultiInsert)
+                if (this.Context.Parameters.MultiInsert && !this.SqlXml)
                 {
                     var t = System.Type.GetType(column.Type);
                     bool isNumericType = numericTypes.Contains(t);
@@ -1578,31 +1580,138 @@ namespace DbMetal.Generator
 
                     firstColumn = false;
                 }
+                else if (this.Context.Parameters.MultiInsert && this.SqlXml)
+                {
+                    propertyInsert.GetStatements.Add(this.AddTextExpressionToSb($"<{columnMember}>", sbReference));
+
+                    var columnProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), columnMember);
+
+                    var t = System.Type.GetType(column.Type);
+
+                    if (t.IsValueType && column.CanBeNull)
+                    {
+                        t = typeof(Nullable<>).MakeGenericType(t);
+                    }
+
+                    CodeExpression expression = columnProperty;
+
+                    if (t == typeof(float) || t == typeof(double) || t == typeof(decimal) || t == typeof(DateTime))
+                    {
+                        var toStringInvoke = new CodeMethodInvokeExpression(columnProperty, "ToString");
+
+                        if (t == typeof(float) || t == typeof(double) || t == typeof(decimal))
+                        {
+                            toStringInvoke = new CodeMethodInvokeExpression(toStringInvoke, "Replace");
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression('.'));
+                        }
+                        else if (t == typeof(DateTime))
+                        {
+                            toStringInvoke.Parameters.Add(new CodePrimitiveExpression("yyyyMMdd HH:mm:ss"));
+                        }
+
+                        expression = toStringInvoke;
+                    }
+                    else if (t == typeof(DateTime?))
+                    {
+                        expression = new CodeSnippetExpression($"this.{columnMember}.HasValue ? this.{columnMember}.Value.ToString(\"yyyyMMdd HH:mm:ss\") : \"\"");
+                    }
+                    else if (t == typeof(float?) || t == typeof(double?) || t == typeof(decimal?))
+                    {
+                        expression = new CodeSnippetExpression($"this.{columnMember}.HasValue ? this.{columnMember}.Value.ToString() : \"\"");
+
+                        var toStringInvoke = new CodeMethodInvokeExpression(expression, "Replace");
+                        toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
+                        toStringInvoke.Parameters.Add(new CodePrimitiveExpression('.'));
+
+                        expression = toStringInvoke;
+                    }
+
+                    propertyInsert.GetStatements.Add(this.AddExpressionToSb(expression, sbReference));
+
+                    propertyInsert.GetStatements.Add(this.AddTextExpressionToSb($"</{columnMember}>\n", sbReference));
+                }
             }
 
             if (Context.Parameters.MultiInsert)
             {
-                propertyInsert.GetStatements.Add(AddTextExpressionToSb(")", sbReference));
-
-                var sbToStringInvoke = new CodeMethodInvokeExpression(sbReference, "ToString");
-
-                propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
-
-                propertyInsert.Comments.Add(new CodeCommentStatement($"<summary> Insert Sql </summary>", true));
-
-                cls.Members.Add(propertyInsert);
-
-                var commonInsField = new CodeMemberField(typeof(string), "CommonInsertSql")
+                if (!this.SqlXml)
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final
-                };
+                    propertyInsert.GetStatements.Add(AddTextExpressionToSb(")", sbReference));
 
-                commonInsField.Comments.Add(new CodeCommentStatement($"<summary> Common insert Sql </summary>", true));
+                    var sbToStringInvoke = new CodeMethodInvokeExpression(sbReference, "ToString");
 
-                var tableCols = string.Join(", ", table.Type.Columns.Select(x => x.Name).ToArray());
-                commonInsField.Name += $" => \"INSERT INTO {table.Name} ({tableCols}) VALUES \"";
+                    propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
 
-                cls.Members.Add(commonInsField);
+                    propertyInsert.Comments.Add(new CodeCommentStatement($"<summary> Insert Sql </summary>", true));
+
+                    cls.Members.Add(propertyInsert);
+
+                    var commonInsField = new CodeMemberField(typeof(string), "CommonInsertSql")
+                    {
+                        Attributes = MemberAttributes.Public | MemberAttributes.Final
+                    };
+
+                    commonInsField.Comments.Add(
+                        new CodeCommentStatement($"<summary> Common insert Sql </summary>", true));
+
+                    var tableCols = string.Join(", ", table.Type.Columns.Select(x => x.Name).ToArray());
+                    commonInsField.Name += $" => \"INSERT INTO {table.Name} ({tableCols}) VALUES \"";
+
+                    cls.Members.Add(commonInsField);
+                }
+                else
+                {
+                    propertyInsert.GetStatements.Add(this.AddTextExpressionToSb($"</Item>\n", sbReference));
+
+                    var sbToStringInvoke = new CodeMethodInvokeExpression(sbReference, "ToString");
+
+                    propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
+
+                    propertyInsert.Comments.Add(new CodeCommentStatement($"<summary> Sql Xml </summary>", true));
+
+                    cls.Members.Add(propertyInsert);
+
+                    // Common Sql xml
+                    var propertyCommonInsert = new CodeMemberProperty();
+                    propertyCommonInsert.Type = new CodeTypeReference(typeof(string));
+                    propertyCommonInsert.Name = "CommonInsertSql";
+                    propertyCommonInsert.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+                    propertyCommonInsert.HasGet = true;
+                    propertyCommonInsert.GetStatements.Add(sbDeclare);
+
+                    sbReference = new CodeVariableReferenceExpression("sb");
+
+                    propertyCommonInsert.Comments.Add(
+                        new CodeCommentStatement($"<summary> Common insert sql </summary>", true));
+
+                    propertyCommonInsert.GetStatements.Add(this.AddTextExpressionToSb("WITH q1 AS(\nSELECT\n", sbReference));
+
+                    foreach (var col in table.Type.Columns)
+                    {
+                        string dbType = col.DbType;
+                        if (dbType.EndsWith("char"))
+                        {
+                            dbType += "(max)";
+                        }
+
+                        propertyCommonInsert.GetStatements.Add(this.AddExpressionToSb(
+                            new CodeSnippetExpression($"\"t.value('({col.Member}/text())[1]', '{dbType}') AS[{col.Name}]\""),
+                            sbReference));
+                    }
+
+                    propertyCommonInsert.GetStatements.Add(this.AddTextExpressionToSb("\nFROM @xml.nodes('/Item') AS x(t)\n)\n\n",
+                        sbReference));
+
+                    var tableCols = string.Join(", ", table.Type.Columns.Select(x => x.Name).ToArray());
+                    propertyCommonInsert.GetStatements.Add(this.AddTextExpressionToSb(
+                        $"INSERT INTO {table.Name} ({tableCols}) SELECT * FROM q1;",
+                        sbReference));
+
+                    propertyCommonInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
+
+                    cls.Members.Add(propertyCommonInsert);
+                }
             }
 
             return cls;
