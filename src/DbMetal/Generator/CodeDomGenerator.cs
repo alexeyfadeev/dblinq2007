@@ -79,6 +79,8 @@ namespace DbMetal.Generator
 
         public string EntityFolder { get; set; }
 
+        public string ContextName { get; set; }
+
         public void CheckLanguageWords(string cultureName)
         {
             if (LanguageWords == null)
@@ -117,14 +119,13 @@ namespace DbMetal.Generator
         public void WriteEfContext(TextWriter textWriter,
             Database dbSchema,
             GenerationContext context,
-            string contextName,
             string provider)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                GenerateEfContextDomModel(dbSchema, contextName, provider.ToLower()), textWriter,
-                new CodeGeneratorOptions()
+                GenerateEfContextDomModel(dbSchema, provider.ToLower()), textWriter,
+                new CodeGeneratorOptions
                     {
                         BracingStyle = "C",
                         IndentString = "\t",
@@ -255,7 +256,7 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
-            var iface = new CodeTypeDeclaration("I" + database.Class.Replace("Context", "Repository"))
+            var iface = new CodeTypeDeclaration($"I{this.ContextName}Repository")
             {
                 IsInterface = true,
                 IsPartial = true
@@ -448,7 +449,7 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
-            var cls = new CodeTypeDeclaration(database.Class.Replace("Context", "Repository"))
+            var cls = new CodeTypeDeclaration(this.ContextName + "Repository")
             {
                 IsPartial = true,
                 Attributes = MemberAttributes.Public | MemberAttributes.Final
@@ -712,7 +713,7 @@ namespace DbMetal.Generator
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateEfContextDomModel(Database database, string contextName, string provider)
+        protected virtual CodeNamespace GenerateEfContextDomModel(Database database, string provider)
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
 
@@ -727,7 +728,7 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
-            var cls = new CodeTypeDeclaration(contextName + "DbContext")
+            var cls = new CodeTypeDeclaration(this.ContextName + "DbContext")
             {
                 IsPartial = true,
                 Attributes = MemberAttributes.Public | MemberAttributes.Final
@@ -900,7 +901,7 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
-            var cls = new CodeTypeDeclaration("Mock" + database.Class.Replace("Context", "Repository"))
+            var cls = new CodeTypeDeclaration($"Mock{this.ContextName}Repository")
             {
                 IsClass = true,
                 IsPartial = true

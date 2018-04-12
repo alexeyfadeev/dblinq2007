@@ -234,6 +234,7 @@ namespace DbMetal.Generator.Implementation
 
             codeGenerator.NetCoreMode = parameters.NetCoreMode;
             codeGenerator.EntityFolder = parameters.EntityFolder;
+            codeGenerator.ContextName = parameters.ContextName;
 
             var generationContext = new GenerationContext(parameters, schemaLoader);
 
@@ -242,7 +243,7 @@ namespace DbMetal.Generator.Implementation
 
             using (var streamWriter = new StreamWriter(filename))
             {
-                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext, parameters.ContextName, parameters.Provider);
+                codeGenerator.WriteEfContext(streamWriter, dbSchema, generationContext, parameters.Provider);
             }
 
             this.ProcessFile(filename);
