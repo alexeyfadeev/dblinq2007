@@ -225,6 +225,11 @@ namespace DbMetal
         /// </summary>
         public string EntityFolder { get; set; }
 
+        /// <summary>
+        /// File with enum definitions
+        /// </summary>
+        public string EnumFile { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
@@ -364,6 +369,9 @@ namespace DbMetal
                 { "entity-folder=",
                   "Separate folder for entity classes ",
                   v => this.EntityFolder = v },
+                { "enum-file=",
+                  "Enum definitions file ",
+                  v => this.EnumFile = v },
             };
 
             Extra = Options.Parse(args);

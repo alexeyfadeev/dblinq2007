@@ -54,6 +54,9 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -88,6 +91,8 @@
     <Compile Include="Generator\EntityInterface\IImplementation.cs" />
     <Compile Include="Generator\EntityInterface\Implementation\IModifiedImplementation.cs" />
     <Compile Include="Generator\EntityInterface\Implementation\INotifyPropertyChangingImplementation.cs" />
+    <Compile Include="Generator\Implementation\EnumDefinition.cs" />
+    <Compile Include="Generator\Implementation\EnumDefinitionReader.cs" />
     <Compile Include="Generator\Implementation\Processor.cs" />
     <Compile Include="Generator\IProcessor.cs" />
     <Compile Include="Generator\ISchemaLoaderFactory.cs" />
@@ -181,6 +186,7 @@
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

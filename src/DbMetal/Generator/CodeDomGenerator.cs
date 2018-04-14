@@ -46,6 +46,8 @@ using DbLinq.Schema.Implementation;
 
 namespace DbMetal.Generator
 {
+    using DbMetal.Generator.Implementation;
+
 #if !MONO_STRICT
     public
 #endif
@@ -82,6 +84,8 @@ namespace DbMetal.Generator
         public string ContextName { get; set; }
 
         public bool SqlXml { get; set; }
+
+        public List<EnumDefinition> EnumDefinitions { get; set; }
 
         public void CheckLanguageWords(string cultureName)
         {
@@ -346,7 +350,8 @@ namespace DbMetal.Generator
 
                 foreach (var col in pkColumns)
                 {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                    var typeRef = this.GetPkCodeTypeReference(col, table);
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(typeRef, GetStorageFieldName(col).Replace("_", "")));
                 }
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Get {table.Member} </summary>", true));
@@ -375,7 +380,7 @@ namespace DbMetal.Generator
                     {
                         method.Parameters.Add(
                             new CodeParameterDeclarationExpression(
-                                ToCodeTypeReference(col),
+                                this.GetPkCodeTypeReference(col, table),
                                 GetStorageFieldName(col).Replace("_", "")));
                     }
 
@@ -585,7 +590,9 @@ namespace DbMetal.Generator
 
                 foreach (var col in pkColumns)
                 {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(
+                        this.GetPkCodeTypeReference(col, table),
+                        GetStorageFieldName(col).Replace("_", "")));
                 }
 
                 var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
@@ -620,7 +627,7 @@ namespace DbMetal.Generator
                     {
                         method.Parameters.Add(
                             new CodeParameterDeclarationExpression(
-                                ToCodeTypeReference(col),
+                                this.GetPkCodeTypeReference(col, table),
                                 GetStorageFieldName(col).Replace("_", "")));
                     }
 
@@ -1069,7 +1076,9 @@ namespace DbMetal.Generator
 
                 foreach (var col in pkColumns)
                 {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
+                    method.Parameters.Add(new CodeParameterDeclarationExpression(
+                        this.GetPkCodeTypeReference(col, table),
+                        GetStorageFieldName(col).Replace("_", "")));
                 }
 
                 var listField = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), privateListNames[table]);
@@ -1107,7 +1116,7 @@ namespace DbMetal.Generator
                     {
                         method.Parameters.Add(
                             new CodeParameterDeclarationExpression(
-                                ToCodeTypeReference(col),
+                                this.GetPkCodeTypeReference(col, table),
                                 GetStorageFieldName(col).Replace("_", "")));
                     }
 
@@ -1842,6 +1851,16 @@ namespace DbMetal.Generator
             {
                 return new CodeTypeReference(column.Type);
             }
+        }
+
+        private CodeTypeReference GetPkCodeTypeReference(Column col, Table table)
+        {
+            var typeRef = ToCodeTypeReference(col);
+
+            string enumType = this.EnumDefinitions
+                ?.FirstOrDefault(x => x.Table == table.Member && x.Column == col.Name)?.EnumType;
+
+            return enumType != null ? new CodeTypeReference(enumType) : typeRef;
         }
 
         CodeBinaryOperatorExpression ValuesAreNotEqual(CodeExpression a, CodeExpression b)

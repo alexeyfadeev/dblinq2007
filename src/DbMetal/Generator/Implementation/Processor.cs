@@ -237,6 +237,11 @@ namespace DbMetal.Generator.Implementation
             codeGenerator.ContextName = parameters.ContextName;
             codeGenerator.SqlXml = parameters.Provider == "SqlServer";
 
+            if (!string.IsNullOrWhiteSpace(parameters.EnumFile))
+            {
+                codeGenerator.EnumDefinitions = EnumDefinitionReader.Read(parameters.EnumFile);
+            }
+
             var generationContext = new GenerationContext(parameters, schemaLoader);
 
             // EfContext
@@ -315,7 +320,7 @@ namespace DbMetal.Generator.Implementation
                 }
 
                 this.ProcessFile(mockFileName, false, true);
-            }
+            }            
         }
 
         public Database ReadSchema(Parameters parameters, out ISchemaLoader schemaLoader)
