@@ -461,7 +461,7 @@ namespace DbMetal.Generator
 
             cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
 
-            var contextType = new CodeTypeReference(this.ContextName + "DbContext");
+            var contextType = new CodeTypeReference(this.ContextName + "Context");
 
             // Constructor
             var constructor = new CodeConstructor
@@ -512,7 +512,7 @@ namespace DbMetal.Generator
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 
-                field.Name += $" => this.Context.{name}.AsQueryable()";
+                field.Name += $" => this.Context.{table.Member}.AsQueryable()";
 
                 cls.Members.Add(field);
             }
@@ -535,7 +535,7 @@ namespace DbMetal.Generator
 
                 method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, paramName));
 
-                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
                 method.Statements.Add(new CodeMethodInvokeExpression(prop, "Add", new CodeVariableReferenceExpression(paramName)));
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
@@ -559,7 +559,7 @@ namespace DbMetal.Generator
                                 
                 method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("IEnumerable", tableType), paramName));
 
-                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
                 method.Statements.Add(new CodeMethodInvokeExpression(prop, "AddRange", new CodeVariableReferenceExpression(paramName)));
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Add range of {table.Member} </summary>", true));
@@ -588,7 +588,7 @@ namespace DbMetal.Generator
                     method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
                 }
 
-                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
+                var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
                 var statement = new CodeMethodInvokeExpression(prop, "FirstOrDefault", new CodeSnippetExpression(
                     "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " +
                                                                         GetStorageFieldName(c).Replace("_", "")).ToArray())));
@@ -626,7 +626,7 @@ namespace DbMetal.Generator
 
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
-                        this.GetTableNamePluralized(table.Member));
+                        table.Member);
                     var statement = new CodeMethodInvokeExpression(
                         prop,
                         "Where",
@@ -666,7 +666,7 @@ namespace DbMetal.Generator
 
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
-                        this.GetTableNamePluralized(table.Member));
+                        table.Member);
                     var statement = new CodeMethodInvokeExpression(
                         prop,
                         "Where",

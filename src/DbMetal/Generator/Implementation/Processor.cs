@@ -298,7 +298,7 @@ namespace DbMetal.Generator.Implementation
                     codeGenerator.WriteRepository(streamWriterRepo,dbSchema, generationContext, parameters.BulkExtensions);
                 }
 
-                this.ProcessFile(repoFileName);
+                this.ProcessFile(repoFileName, false, true);
 
                 // MockRepository
                 string mockFileName = $"Mock{parameters.ContextName}Repository.cs";
@@ -314,7 +314,7 @@ namespace DbMetal.Generator.Implementation
                         parameters.BulkExtensions);
                 }
 
-                this.ProcessFile(mockFileName);
+                this.ProcessFile(mockFileName, false, true);
             }
         }
 
@@ -361,7 +361,7 @@ namespace DbMetal.Generator.Implementation
             }
         }
 
-        private void ProcessFile(string filePath, bool replaceToVirtual = false)
+        private void ProcessFile(string filePath, bool replaceToVirtual = false, bool replaceId = false)
         {
             string text = File.ReadAllText(filePath);
 
@@ -370,6 +370,11 @@ namespace DbMetal.Generator.Implementation
             if (replaceToVirtual)
             {
                 text = text.Replace("internal static", "public virtual");
+            }
+
+            if (replaceId)
+            {
+                text = text.Replace(".ID", ".Id");
             }
 
             text = text.Replace(";\r\n\t\r\n\t", ";\r\n\t");
