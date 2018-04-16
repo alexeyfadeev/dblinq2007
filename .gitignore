@@ -9,3 +9,6 @@ obj/
 build/
 build.dbg/
 build.dbg.mono/
+output/
+packages/
+.vs/

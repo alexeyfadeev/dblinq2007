@@ -417,6 +417,8 @@ namespace DbMetal.Generator
                 ReturnType = voidTypeRef
             };
 
+            methodSubmit.Comments.Add(new CodeCommentStatement($"<summary> Save changes </summary>", true));
+
             iface.Members.Add(methodSubmit);
 
             nameSpace.Types.Add(iface);
@@ -934,16 +936,20 @@ namespace DbMetal.Generator
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
 
+                string name = GetTableNamePluralized(table.Member);
+
                 var field = new CodeMemberProperty
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = GetTableNamePluralized(table.Member),
+                    Name = name,
                     Type = new CodeTypeReference("IQueryable", tableType),
                 };
                 field.HasGet = true;
 
                 var prop = new CodeVariableReferenceExpression(privateListNames[table]);
                 field.GetStatements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(prop, "AsQueryable")));
+
+                field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 
                 cls.Members.Add(field);
             }
@@ -1000,6 +1006,8 @@ namespace DbMetal.Generator
                 var addStatement = new CodeMethodInvokeExpression(listField, "Add", new CodeVariableReferenceExpression(paramName));
 
                 method.Statements.Add(addStatement);
+
+                method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
 
                 cls.Members.Add(method);
             }
@@ -1227,7 +1235,8 @@ namespace DbMetal.Generator
                 }
             }
 
-            var methodSubmit = new CodeMemberMethod()
+            // Save changes
+            var methodSubmit = new CodeMemberMethod
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
                 Name = "SaveChanges",
@@ -1238,7 +1247,8 @@ namespace DbMetal.Generator
 
             cls.Members.Add(methodSubmit);
 
-            var methodDispose = new CodeMemberMethod()
+            // Dispose
+            var methodDispose = new CodeMemberMethod
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
                 Name = "Dispose",
@@ -1248,6 +1258,44 @@ namespace DbMetal.Generator
             cls.Members.Add(methodDispose);
 
             methodDispose.Comments.Add(new CodeCommentStatement("<summary> Dispose (stub) </summary>", true));
+
+            // Set Links
+            var methodLinks = new CodeMemberMethod
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "SetLinks",
+                ReturnType = voidTypeRef
+            };
+
+            foreach (Table table in database.Tables)
+            {
+                var tableType = new CodeTypeReference(table.Type.Name);
+
+                var listField = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), privateListNames[table]);
+
+                var relatedAssociations = (from a in table.Type.Associations
+                                          where a.IsForeignKey
+                                          select a)
+                    .ToList();
+
+                foreach (var ra in relatedAssociations)
+                {
+                    string otherKey = ra.OtherKey == "ID" ? "Id" : ra.OtherKey;
+                    string thisKey = ra.ThisKey.EndsWith("ID") ? ra.ThisKey.Replace("ID", "Id") : ra.ThisKey;
+
+                    var otherTable = database.Tables.FirstOrDefault(x => x.Type.Name == ra.Type);
+
+                    var statement = new CodeMethodInvokeExpression(listField, "ForEach",
+                        new CodeSnippetExpression(
+                            $"t => t.{ra.Member} = this.{privateListNames[otherTable]}.FirstOrDefault(k => k.{otherKey} == t.{thisKey})"));
+
+                    methodLinks.Statements.Add(statement);
+                }
+            }
+
+            methodLinks.Comments.Add(new CodeCommentStatement("<summary> Set FK links </summary>", true));
+
+            cls.Members.Add(methodLinks);
 
             nameSpace.Types.Add(cls);
 
