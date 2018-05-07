@@ -413,6 +413,36 @@ namespace DbMetal.Generator
 
                     iface.Members.Add(method);
                 }
+
+                // Bulk update methods (by expression)
+                foreach (Table table in database.Tables)
+                {
+                    var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
+                    var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
+
+                    var name = this.GetTableNamePluralized(table.Member);
+
+                    var method = new CodeMemberMethod
+                                     {
+                                         Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                         Name = "BulkDelete" + name,
+                                         ReturnType = voidTypeRef
+                                     };
+
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType1)),
+                            "updateExpression"));
+
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType2)),
+                            "filerExpression"));
+
+                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk update {name} </summary>", true));
+
+                    iface.Members.Add(method);
+                }
             }
 
             var methodSubmit = new CodeMemberMethod()
@@ -676,6 +706,7 @@ namespace DbMetal.Generator
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
                         table.Member);
+
                     var statement = new CodeMethodInvokeExpression(
                         prop,
                         "Where",
@@ -684,6 +715,50 @@ namespace DbMetal.Generator
                     method.Statements.Add(new CodeMethodInvokeExpression(statement, "Delete"));
 
                     method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+
+                    cls.Members.Add(method);
+                }
+
+                // Bulk update methods (by expression)
+                foreach (Table table in database.Tables)
+                {
+                    var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
+                    var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
+
+                    var name = this.GetTableNamePluralized(table.Member);
+
+                    var method = new CodeMemberMethod
+                                     {
+                                         Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                         Name = "BulkDelete" + name,
+                                         ReturnType = voidTypeRef
+                                     };
+
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType1)),
+                            "updateExpression"));
+
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType2)),
+                            "filerExpression"));
+
+                    var prop = new CodePropertyReferenceExpression(
+                        contextRef,
+                        this.GetTableNamePluralized(table.Member));
+
+                    var statement = new CodeMethodInvokeExpression(
+                        prop,
+                        "Where",
+                        new CodeVariableReferenceExpression("filerExpression"));
+
+                    method.Statements.Add(new CodeMethodInvokeExpression(
+                        statement,
+                        "Update",
+                        new CodeVariableReferenceExpression("updateExpression")));
+
+                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk update {name} </summary>", true));
 
                     cls.Members.Add(method);
                 }
@@ -1243,6 +1318,38 @@ namespace DbMetal.Generator
                     method.Statements.Add(forLoop);
 
                     method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
+
+                    cls.Members.Add(method);
+                }
+
+                // Bulk update methods (by expression)
+                foreach (Table table in database.Tables)
+                {
+                    var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
+                    var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
+
+                    var name = this.GetTableNamePluralized(table.Member);
+
+                    var method = new CodeMemberMethod
+                                     {
+                                         Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                                         Name = "BulkDelete" + name,
+                                         ReturnType = voidTypeRef
+                                     };
+
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType1)),
+                            "updateExpression"));
+
+                    method.Parameters.Add(
+                        new CodeParameterDeclarationExpression(
+                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType2)),
+                            "filerExpression"));
+
+                    method.Statements.Add(new CodeSnippetExpression("throw new NotImplementedException()"));
+
+                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk update {name} </summary>", true));
 
                     cls.Members.Add(method);
                 }
