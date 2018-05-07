@@ -444,6 +444,39 @@ namespace DbMetal.Generator
                     iface.Members.Add(method);
                 }
             }
+            
+            var methodBeginTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "BeginTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodBeginTrans.Comments.Add(new CodeCommentStatement($"<summary> Begin Transaction </summary>", true));
+
+            iface.Members.Add(methodBeginTrans);
+            
+            var methodCommitTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "CommitTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodCommitTrans.Comments.Add(new CodeCommentStatement($"<summary> Commit Transaction </summary>", true));
+
+            iface.Members.Add(methodCommitTrans);
+
+            var methodRollbackTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "RollbackTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodRollbackTrans.Comments.Add(new CodeCommentStatement($"<summary> Rollback Transaction </summary>", true));
+
+            iface.Members.Add(methodRollbackTrans);
 
             var methodSubmit = new CodeMemberMethod()
             {
@@ -499,6 +532,13 @@ namespace DbMetal.Generator
             cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
 
             var contextType = new CodeTypeReference("I" + this.ContextName + "Context");
+
+            // Transaction variable
+            cls.Members.Add(new CodeMemberField
+            {
+                Name = "transaction",
+                Type = new CodeTypeReference("DbContextTransaction")
+            });
 
             // Constructor
             var constructor = new CodeConstructor
@@ -763,6 +803,64 @@ namespace DbMetal.Generator
                     cls.Members.Add(method);
                 }
             }
+
+            var methodBeginTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "BeginTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodBeginTrans.Statements.Add(
+                new CodeAssignStatement(
+                    new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                    new CodeMethodInvokeExpression(contextRef, "Database.BeginTransaction")));
+
+            methodBeginTrans.Comments.Add(new CodeCommentStatement($"<summary> Begin Transaction </summary>", true));
+
+            cls.Members.Add(methodBeginTrans);
+
+            var methodCommitTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "CommitTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodCommitTrans.Statements.Add(new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "SaveChanges"));
+
+            methodCommitTrans.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                "Commit"));
+
+            methodCommitTrans.Statements.Add(
+                new CodeAssignStatement(
+                    new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                    new CodePrimitiveExpression(null)));
+
+            methodCommitTrans.Comments.Add(new CodeCommentStatement($"<summary> Commit Transaction </summary>", true));
+
+            cls.Members.Add(methodCommitTrans);
+
+            var methodRollbackTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "RollbackTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodRollbackTrans.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                "Rollback"));
+
+            methodRollbackTrans.Statements.Add(
+                new CodeAssignStatement(
+                    new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                    new CodePrimitiveExpression(null)));
+
+            methodRollbackTrans.Comments.Add(new CodeCommentStatement($"<summary> Rollback Transaction </summary>", true));
+
+            cls.Members.Add(methodRollbackTrans);
 
             // SaveChanges method
             var methodSubmit = new CodeMemberMethod()
@@ -1354,6 +1452,39 @@ namespace DbMetal.Generator
                     cls.Members.Add(method);
                 }
             }
+
+            var methodBeginTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "BeginTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodBeginTrans.Comments.Add(new CodeCommentStatement($"<summary> Begin Transaction (stub) </summary>", true));
+
+            cls.Members.Add(methodBeginTrans);
+
+            var methodCommitTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "CommitTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodCommitTrans.Comments.Add(new CodeCommentStatement($"<summary> Commit Transaction (stub) </summary>", true));
+
+            cls.Members.Add(methodCommitTrans);
+
+            var methodRollbackTrans = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "RollbackTransaction",
+                ReturnType = voidTypeRef
+            };
+
+            methodRollbackTrans.Comments.Add(new CodeCommentStatement($"<summary> Rollback Transaction (stub) </summary>", true));
+
+            cls.Members.Add(methodRollbackTrans);
 
             // Save changes
             var methodSubmit = new CodeMemberMethod
