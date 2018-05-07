@@ -984,7 +984,11 @@ namespace DbMetal.Generator
                 var listField = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), privateListNames[table]);
 
                 var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-                if (pkColumns.Count == 1)
+
+                var enumDefExist = this.EnumDefinitions
+                    .Any(x => x.Table == table.Member && pkColumns.Select(c => c.Name).Contains(x.Column));
+
+                if (pkColumns.Count == 1 && !enumDefExist)
                 {
                     // Primary key auto-increment
 
