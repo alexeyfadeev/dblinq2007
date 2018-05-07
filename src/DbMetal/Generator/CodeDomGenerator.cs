@@ -786,7 +786,7 @@ namespace DbMetal.Generator
 
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
-                        this.GetTableNamePluralized(table.Member));
+                        table.Member);
 
                     var statement = new CodeMethodInvokeExpression(
                         prop,
