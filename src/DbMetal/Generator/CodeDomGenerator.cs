@@ -498,7 +498,7 @@ namespace DbMetal.Generator
 
             cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
 
-            var contextType = new CodeTypeReference(this.ContextName + "Context");
+            var contextType = new CodeTypeReference("I" + this.ContextName + "Context");
 
             // Constructor
             var constructor = new CodeConstructor
