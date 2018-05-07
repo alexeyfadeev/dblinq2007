@@ -425,7 +425,7 @@ namespace DbMetal.Generator
                     var method = new CodeMemberMethod
                                      {
                                          Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                         Name = "BulkDelete" + name,
+                                         Name = "BulkUpdate" + name,
                                          ReturnType = voidTypeRef
                                      };
 
@@ -728,11 +728,11 @@ namespace DbMetal.Generator
                     var name = this.GetTableNamePluralized(table.Member);
 
                     var method = new CodeMemberMethod
-                                     {
-                                         Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                         Name = "BulkDelete" + name,
-                                         ReturnType = voidTypeRef
-                                     };
+                    {
+                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkUpdate" + name,
+                        ReturnType = voidTypeRef
+                    };
 
                     method.Parameters.Add(
                         new CodeParameterDeclarationExpression(
@@ -1331,11 +1331,11 @@ namespace DbMetal.Generator
                     var name = this.GetTableNamePluralized(table.Member);
 
                     var method = new CodeMemberMethod
-                                     {
-                                         Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                         Name = "BulkDelete" + name,
-                                         ReturnType = voidTypeRef
-                                     };
+                    {
+                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Name = "BulkUpdate" + name,
+                        ReturnType = voidTypeRef
+                    };
 
                     method.Parameters.Add(
                         new CodeParameterDeclarationExpression(
