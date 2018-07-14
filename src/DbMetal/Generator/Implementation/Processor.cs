@@ -315,6 +315,21 @@ namespace DbMetal.Generator.Implementation
                 }
 
                 this.ProcessFile(mockFileName);
+
+                // MockRepositoryHelper
+                string helperFileName = $"Mock{parameters.ContextName}RepositoryHelper.cs";
+
+                parameters.Write("<<< writing MockContextHelper into file '{0}'", helperFileName);
+
+                using (var streamWriterHelperContext = new StreamWriter(helperFileName))
+                {
+                    codeGenerator.WriteHelper(
+                        streamWriterHelperContext,
+                        dbSchema,
+                        generationContext);
+                }
+
+                this.ProcessFile(helperFileName);
             }
         }
 
