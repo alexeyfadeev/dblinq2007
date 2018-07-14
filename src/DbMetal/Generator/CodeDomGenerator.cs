@@ -1445,7 +1445,14 @@ namespace DbMetal.Generator
                             new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType2)),
                             "filerExpression"));
 
-                    method.Statements.Add(new CodeSnippetExpression("throw new NotImplementedException()"));
+                    var statement = new CodeMethodInvokeExpression(
+                        new CodeThisReferenceExpression(),
+                        $"BulkUpdate<{table.Member}>",
+                        new CodeVariableReferenceExpression("updateExpression"),
+                        new CodeVariableReferenceExpression("filerExpression"),
+                        new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), table.Member));
+
+                    method.Statements.Add(statement);
 
                     method.Comments.Add(new CodeCommentStatement($"<summary> Bulk update {name} </summary>", true));
 
