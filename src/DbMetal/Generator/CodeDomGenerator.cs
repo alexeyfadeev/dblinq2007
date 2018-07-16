@@ -1598,10 +1598,10 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
-            var cls = new CodeTypeDeclaration($"Mock{this.ContextName}RepositoryHelper")
+            var cls = new CodeTypeDeclaration($"static Mock{this.ContextName}RepositoryHelper")
             {
                 IsClass = true,
-                Attributes = MemberAttributes.Public | MemberAttributes.Static
+                Attributes = MemberAttributes.Public
             };
 
             cls.Comments.Add(new CodeCommentStatement("<summary> Mock repository helper </summary>", true));
@@ -1622,7 +1622,7 @@ namespace DbMetal.Generator
 
                 var methodLinks = new CodeMemberMethod
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final | MemberAttributes.Static,
                     Name = "SetLinks",
                     ReturnType = voidTypeRef
                 };
