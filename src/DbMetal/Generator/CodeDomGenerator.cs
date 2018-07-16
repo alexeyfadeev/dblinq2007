@@ -1614,7 +1614,7 @@ namespace DbMetal.Generator
             var cls = new CodeTypeDeclaration($"static Mock{this.ContextName}RepositoryHelper")
             {
                 IsClass = true,
-                Attributes = MemberAttributes.Public | MemberAttributes.Static
+                Attributes = MemberAttributes.Public
             };
 
             cls.Comments.Add(new CodeCommentStatement("<summary> Mock repository helper </summary>", true));

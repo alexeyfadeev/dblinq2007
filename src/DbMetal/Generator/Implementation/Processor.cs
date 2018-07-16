@@ -397,6 +397,8 @@ namespace DbMetal.Generator.Implementation
                 text = text.Replace(".ID", ".Id");
             }
 
+            text = text.Replace("class static", "static class");
+
             text = text.Replace(";\r\n\t\r\n\t", ";\r\n\t");
             text = text.Replace("{\r\n\t\t\r\n\t\t", "{\r\n\t\t");
             text = text.Replace(";\r\n\t\t\t\tif ", ";\r\n\t\t\t\t\r\n\t\t\t\tif ");
