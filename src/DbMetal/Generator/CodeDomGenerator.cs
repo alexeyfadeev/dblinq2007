@@ -180,6 +180,20 @@ namespace DbMetal.Generator
                 });
         }
 
+        public void WriteHelper(TextWriter textWriter, Database dbSchema, GenerationContext context)
+        {
+            Context = context;
+
+            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
+                this.GenerateHelperDomModel(dbSchema),
+                textWriter,
+                new CodeGeneratorOptions()
+                    {
+                        BracingStyle = "C",
+                        IndentString = "\t",
+                    });
+        }
+
         private CodeTypeMember CreatePartialMethod(string methodName, params CodeParameterDeclarationExpression[] parameters)
         {
             string prototype = null;
@@ -1063,13 +1077,25 @@ namespace DbMetal.Generator
             return ret;
         }
 
+        private Dictionary<Table, string> CreatePrivateListNames(Database database)
+        {
+            var privateListNames = new Dictionary<Table, string>();
+
+            foreach (Table table in database.Tables)
+            {
+                privateListNames.Add(table, GetLowerCamelCase(this.GetTableNamePluralized(table.Member)));
+            }
+
+            return privateListNames;
+        }
+
         protected virtual CodeNamespace GenerateMockRepositoryDomModel(Database database, bool bulkExtensions)
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
             string nameSpaceName = Context.Parameters.Namespace ?? database.ContextNamespace;
 
-            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName); ;
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
             nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
@@ -1094,13 +1120,13 @@ namespace DbMetal.Generator
             cls.BaseTypes.Add(new CodeTypeReference($"I{this.ContextName}Repository"));
             cls.BaseTypes.Add(new CodeTypeReference("IDisposable"));
 
-            var privateListNames = new Dictionary<Table, string>();
+            cls.Comments.Add(new CodeCommentStatement("<summary> Mock repository </summary>", true));
+
+            var privateListNames = this.CreatePrivateListNames(database);
 
             foreach (Table table in database.Tables)
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
-
-                privateListNames.Add(table, GetLowerCamelCase(GetTableNamePluralized(table.Member)));
 
                 var field = new CodeMemberField
                 {
@@ -1111,7 +1137,7 @@ namespace DbMetal.Generator
 
                 cls.Members.Add(field);
             }
-            
+
             foreach (Table table in database.Tables)
             {
                 var tableType = new CodeTypeReference(table.Type.Name);
@@ -1190,6 +1216,16 @@ namespace DbMetal.Generator
                 var addStatement = new CodeMethodInvokeExpression(listField, "Add", new CodeVariableReferenceExpression(paramName));
 
                 method.Statements.Add(addStatement);
+
+                if ((from a in table.Type.Associations where a.IsForeignKey select a).Any())
+                {
+                    var linksStatement = new CodeMethodInvokeExpression(
+                        new CodeVariableReferenceExpression(paramName),
+                        "SetLinks",
+                        new CodeThisReferenceExpression());
+
+                    method.Statements.Add(linksStatement);
+                }
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
 
@@ -1554,6 +1590,80 @@ namespace DbMetal.Generator
             methodLinks.Comments.Add(new CodeCommentStatement("<summary> Set FK links </summary>", true));
 
             cls.Members.Add(methodLinks);
+
+            nameSpace.Types.Add(cls);
+
+            return nameSpace;
+        }
+
+        protected virtual CodeNamespace GenerateHelperDomModel(Database database)
+        {
+            CheckLanguageWords(Context.Parameters.Culture);
+
+            string nameSpaceName = Context.Parameters.Namespace ?? database.ContextNamespace;
+
+            CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
+
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
+
+            if (!string.IsNullOrWhiteSpace(this.EntityFolder))
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
+            }
+
+            var cls = new CodeTypeDeclaration($"static Mock{this.ContextName}RepositoryHelper")
+            {
+                IsClass = true,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+
+            cls.Comments.Add(new CodeCommentStatement("<summary> Mock repository helper </summary>", true));
+
+            var voidTypeRef = new CodeTypeReference(typeof(void));
+
+            foreach (Table table in database.Tables)
+            {
+                var relatedAssociations = (from a in table.Type.Associations
+                                           where a.IsForeignKey
+                                           select a)
+                    .ToList();
+
+                if (!relatedAssociations.Any())
+                {
+                    continue;
+                }
+
+                var methodLinks = new CodeMemberMethod
+                {
+                    Attributes = MemberAttributes.Public | MemberAttributes.Final | MemberAttributes.Static,
+                    Name = "SetLinks",
+                    ReturnType = voidTypeRef
+                };
+
+                var tableType = new CodeTypeReference("this " + table.Type.Name);
+
+                methodLinks.Parameters.Add(new CodeParameterDeclarationExpression(tableType, "item"));
+                methodLinks.Parameters.Add(new CodeParameterDeclarationExpression(
+                    new CodeTypeReference($"Mock{this.ContextName}Repository"), 
+                    "repo"));
+
+                foreach (var ra in relatedAssociations)
+                {
+                    var datasetName = this.GetTableNamePluralized(ra.Member);
+
+                    string otherKey = ra.OtherKey == "ID" ? "Id" : ra.OtherKey;
+                    string thisKey = ra.ThisKey.EndsWith("ID") ? ra.ThisKey.Replace("ID", "Id") : ra.ThisKey;
+
+                    var statement = new CodeSnippetExpression(
+                            $"item.{ra.Member} = repo.{datasetName}.FirstOrDefault(k => k.{otherKey} == t.{thisKey})");
+
+                    methodLinks.Statements.Add(statement);
+                }
+
+                methodLinks.Comments.Add(new CodeCommentStatement("<summary> Set FK links </summary>", true));
+
+                cls.Members.Add(methodLinks);
+            }
 
             nameSpace.Types.Add(cls);
 

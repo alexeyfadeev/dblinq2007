@@ -320,7 +320,22 @@ namespace DbMetal.Generator.Implementation
                 }
 
                 this.ProcessFile(mockFileName, false, true);
-            }            
+
+                // MockRepositoryHelper
+                string helperFileName = $"Mock{parameters.ContextName}RepositoryHelper.cs";
+
+                parameters.Write("<<< writing MockContextHelper into file '{0}'", helperFileName);
+
+                using (var streamWriterHelperContext = new StreamWriter(helperFileName))
+                {
+                    codeGenerator.WriteHelper(
+                        streamWriterHelperContext,
+                        dbSchema,
+                        generationContext);
+                }
+
+                this.ProcessFile(helperFileName);
+            }
         }
 
         public Database ReadSchema(Parameters parameters, out ISchemaLoader schemaLoader)
