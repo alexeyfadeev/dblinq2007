@@ -1473,7 +1473,7 @@ namespace DbMetal.Generator
                         $"BulkUpdate<{table.Member}>",
                         new CodeVariableReferenceExpression("updateExpression"),
                         new CodeVariableReferenceExpression("filerExpression"),
-                        new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), table.Member));
+                        new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), name));
 
                     method.Statements.Add(statement);
 
@@ -1642,7 +1642,7 @@ namespace DbMetal.Generator
                     string thisKey = ra.ThisKey.EndsWith("ID") ? ra.ThisKey.Replace("ID", "Id") : ra.ThisKey;
 
                     var statement = new CodeSnippetExpression(
-                            $"item.{ra.Member} = repo.{datasetName}.FirstOrDefault(k => k.{otherKey} == t.{thisKey})");
+                            $"item.{ra.Member} = repo.{datasetName}.FirstOrDefault(k => k.{otherKey} == item.{thisKey})");
 
                     methodLinks.Statements.Add(statement);
                 }
