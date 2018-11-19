@@ -517,11 +517,20 @@ namespace DbMetal.Generator
             }
 
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));            
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
 
             if (bulkExtensions)
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
+            }
+
+            if (this.NetCoreMode)
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("Microsoft.EntityFrameworkCore.Storage"));
+            }
+
+            if (bulkExtensions)
+            {
                 nameSpace.Imports.Add(new CodeNamespaceImport("Z.EntityFramework.Plus"));
             }
 
@@ -546,7 +555,7 @@ namespace DbMetal.Generator
             cls.Members.Add(new CodeMemberField
             {
                 Name = "transaction",
-                Type = new CodeTypeReference("DbContextTransaction")
+                Type = new CodeTypeReference(this.NetCoreMode ? "IDbContextTransaction" : "DbContextTransaction")
             });
 
             // Constructor
