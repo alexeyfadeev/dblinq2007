@@ -249,7 +249,12 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations.Schema"));
 
-            nameSpace.Types.Add(this.GenerateEfClass(table, database));
+            nameSpace.Types.Add(this.GenerateEfClass(table, database, out bool enumTypeIsNeeded));
+
+            if (enumTypeIsNeeded)
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("DoubleJ.Oms.Domain.Definitions"));
+            }
 
             return nameSpace;
         }
@@ -275,6 +280,8 @@ namespace DbMetal.Generator
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
+
+            nameSpace.Imports.Add(new CodeNamespaceImport("DoubleJ.Oms.Domain.Definitions"));
 
             var iface = new CodeTypeDeclaration($"I{this.ContextName}Repository")
             {
@@ -544,6 +551,8 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
+            nameSpace.Imports.Add(new CodeNamespaceImport("DoubleJ.Oms.Domain.Definitions"));
+
             var cls = new CodeTypeDeclaration(this.ContextName + "Repository")
             {
                 IsPartial = true,
@@ -554,7 +563,7 @@ namespace DbMetal.Generator
 
             cls.BaseTypes.Add(new CodeTypeReference("I" + cls.Name));
 
-            var contextType = new CodeTypeReference("I" + this.ContextName + "Context");
+            var contextType = new CodeTypeReference(this.ContextName + "DbContext");
 
             // Transaction variable
             cls.Members.Add(new CodeMemberField
@@ -612,7 +621,7 @@ namespace DbMetal.Generator
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 
-                field.Name += $" => this.Context.{table.Member}.AsQueryable()";
+                field.Name += $" => this.Context.{name}.AsQueryable()";
 
                 cls.Members.Add(field);
             }
@@ -635,7 +644,7 @@ namespace DbMetal.Generator
 
                 method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, paramName));
 
-                var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
                 method.Statements.Add(new CodeMethodInvokeExpression(prop, "Add", new CodeVariableReferenceExpression(paramName)));
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
@@ -659,7 +668,7 @@ namespace DbMetal.Generator
                                 
                 method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("IEnumerable", tableType), paramName));
 
-                var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
                 method.Statements.Add(new CodeMethodInvokeExpression(prop, "AddRange", new CodeVariableReferenceExpression(paramName)));
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Add range of {table.Member} </summary>", true));
@@ -690,7 +699,7 @@ namespace DbMetal.Generator
                         GetStorageFieldName(col).Replace("_", "")));
                 }
 
-                var prop = new CodePropertyReferenceExpression(contextRef, table.Member);
+                var prop = new CodePropertyReferenceExpression(contextRef, this.GetTableNamePluralized(table.Member));
                 var statement = new CodeMethodInvokeExpression(prop, "FirstOrDefault", new CodeSnippetExpression(
                     "x => " + string.Join(" && ", pkColumns.Select(c => "x." + c.Member + " == " +
                                                                         GetStorageFieldName(c).Replace("_", "")).ToArray())));
@@ -728,7 +737,7 @@ namespace DbMetal.Generator
 
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
-                        table.Member);
+                        this.GetTableNamePluralized(table.Member));
                     var statement = new CodeMethodInvokeExpression(
                         prop,
                         "Where",
@@ -768,7 +777,7 @@ namespace DbMetal.Generator
 
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
-                        table.Member);
+                        this.GetTableNamePluralized(table.Member));
 
                     var statement = new CodeMethodInvokeExpression(
                         prop,
@@ -809,7 +818,7 @@ namespace DbMetal.Generator
 
                     var prop = new CodePropertyReferenceExpression(
                         contextRef,
-                        table.Member);
+                        this.GetTableNamePluralized(table.Member));
 
                     var statement = new CodeMethodInvokeExpression(
                         prop,
@@ -1755,7 +1764,7 @@ namespace DbMetal.Generator
             return AddExpressionToSb(new CodePrimitiveExpression(text), sbReference);
         }
 
-        protected CodeTypeDeclaration GenerateEfClass(Table table, Database database)
+        protected CodeTypeDeclaration GenerateEfClass(Table table, Database database, out bool enumTypeIsNeeded)
         {
             string schemaName = "public";
             string tableName = table.Name;
@@ -1807,10 +1816,14 @@ namespace DbMetal.Generator
             var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
                                                            typeof(float), typeof(double), typeof(decimal), typeof(bool), typeof(List<string>) };
 
+            enumTypeIsNeeded = false;
+
             foreach (Column column in table.Type.Columns)
             {
-                var type = ToCodeTypeReference(column);
+                var type = this.GetPkCodeTypeReference(column, table);
                 var columnMember = column.Member ?? column.Name;
+
+                enumTypeIsNeeded |= this.EnumDefinitions?.Any(x => x.Table == table.Member && x.Column == column.Name) == true;
 
                 var columnAttrArgs = new List<CodeAttributeArgument>
                 {

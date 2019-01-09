@@ -41,7 +41,7 @@
                 }
             }";
 
-            var lines = File.ReadAllLines(@"C:\Work\Shopfloor-Intranet\DoubleJ.Oms.Domain\Entities\DoubleJOMS-Model.tt")
+            var lines = File.ReadAllLines(path)
                 .Where(x => x.Contains("this.EnumsDefinitions.Add"));
 
             string code = $"{code1}{string.Join(Environment.NewLine, lines)}{code2}";
