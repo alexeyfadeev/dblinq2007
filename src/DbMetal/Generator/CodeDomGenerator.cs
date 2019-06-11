@@ -1175,7 +1175,7 @@ namespace DbMetal.Generator
 
                 var method = new CodeMemberMethod
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Attributes = MemberAttributes.Public,
                     Name = "Add" + table.Member,
                     ReturnType = voidTypeRef
                 };
@@ -1239,7 +1239,7 @@ namespace DbMetal.Generator
 
                 var method = new CodeMemberMethod
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Attributes = MemberAttributes.Public,
                     Name = "AddRange" + this.GetTableNamePluralized(table.Member),
                     ReturnType = voidTypeRef
                 };
@@ -1288,7 +1288,7 @@ namespace DbMetal.Generator
 
                 var method = new CodeMemberMethod()
                 {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                    Attributes = MemberAttributes.Public,
                     Name = "Get" + table.Member,
                     ReturnType = tableType
                 };
@@ -1324,7 +1324,7 @@ namespace DbMetal.Generator
                     var method = new CodeMemberMethod
                     {
                         Attributes =
-                            MemberAttributes.Public | MemberAttributes.Final,
+                            MemberAttributes.Public,
                         Name = "BulkDelete" + table.Member,
                         ReturnType = voidTypeRef
                     };
@@ -1384,7 +1384,7 @@ namespace DbMetal.Generator
 
                     var method = new CodeMemberMethod
                     {
-                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Attributes = MemberAttributes.Public,
                         Name = "BulkDelete" + name,
                         ReturnType = voidTypeRef
                     };
@@ -1462,7 +1462,7 @@ namespace DbMetal.Generator
 
                     var method = new CodeMemberMethod
                     {
-                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                        Attributes = MemberAttributes.Public,
                         Name = "BulkUpdate" + name,
                         ReturnType = voidTypeRef
                     };
@@ -1494,7 +1494,7 @@ namespace DbMetal.Generator
 
             var methodBeginTrans = new CodeMemberMethod()
             {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Attributes = MemberAttributes.Public,
                 Name = "BeginTransaction",
                 ReturnType = voidTypeRef
             };
@@ -1505,7 +1505,7 @@ namespace DbMetal.Generator
 
             var methodCommitTrans = new CodeMemberMethod()
             {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Attributes = MemberAttributes.Public,
                 Name = "CommitTransaction",
                 ReturnType = voidTypeRef
             };
@@ -1516,7 +1516,7 @@ namespace DbMetal.Generator
 
             var methodRollbackTrans = new CodeMemberMethod()
             {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Attributes = MemberAttributes.Public,
                 Name = "RollbackTransaction",
                 ReturnType = voidTypeRef
             };
@@ -1528,7 +1528,7 @@ namespace DbMetal.Generator
             // Save changes
             var methodSubmit = new CodeMemberMethod
             {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Attributes = MemberAttributes.Public,
                 Name = "SaveChanges",
                 ReturnType = voidTypeRef
             };
@@ -1540,7 +1540,7 @@ namespace DbMetal.Generator
             // Dispose
             var methodDispose = new CodeMemberMethod
             {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Attributes = MemberAttributes.Public,
                 Name = "Dispose",
                 ReturnType = voidTypeRef
             };
@@ -1552,7 +1552,7 @@ namespace DbMetal.Generator
             // Set Links
             var methodLinks = new CodeMemberMethod
             {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Attributes = MemberAttributes.Public,
                 Name = "SetLinks",
                 ReturnType = voidTypeRef
             };
@@ -2030,7 +2030,7 @@ namespace DbMetal.Generator
                     }
                     else if (t == typeof(float?) || t == typeof(double?) || t == typeof(decimal?))
                     {
-                        expression = new CodeSnippetExpression($"this.{columnMember}.HasValue ? this.{columnMember}.Value.ToString() : \"\"");
+                        expression = new CodeSnippetExpression($"(this.{columnMember}.HasValue ? this.{columnMember}.Value.ToString() : \"\")");
 
                         var toStringInvoke = new CodeMethodInvokeExpression(expression, "Replace");
                         toStringInvoke.Parameters.Add(new CodePrimitiveExpression(','));
@@ -2077,27 +2077,30 @@ namespace DbMetal.Generator
                     propertyInsert.GetStatements.Add(this.AddTextExpressionToSb($"</Item>\n", sbReference));
 
                     var sbToStringInvoke = new CodeMethodInvokeExpression(sbReference, "ToString");
+                    var sbReplaceInvoke = new CodeMethodInvokeExpression(sbToStringInvoke, "Replace");
+                    sbReplaceInvoke.Parameters.Add(new CodePrimitiveExpression("'"));
+                    sbReplaceInvoke.Parameters.Add(new CodePrimitiveExpression("''"));
 
-                    propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
+                    propertyInsert.GetStatements.Add(new CodeMethodReturnStatement(sbReplaceInvoke));
 
                     propertyInsert.Comments.Add(new CodeCommentStatement($"<summary> Sql Xml </summary>", true));
 
                     cls.Members.Add(propertyInsert);
 
                     // Common Sql xml
-                    var propertyCommonInsert = new CodeMemberProperty();
-                    propertyCommonInsert.Type = new CodeTypeReference(typeof(string));
-                    propertyCommonInsert.Name = "CommonInsertSql";
-                    propertyCommonInsert.Attributes = MemberAttributes.Public | MemberAttributes.Final;
-                    propertyCommonInsert.HasGet = true;
-                    propertyCommonInsert.GetStatements.Add(sbDeclare);
+                    var propertyCommonSql = new CodeMemberProperty();
+                    propertyCommonSql.Type = new CodeTypeReference(typeof(string));
+                    propertyCommonSql.Name = "CommonSql";
+                    propertyCommonSql.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+                    propertyCommonSql.HasGet = true;
+                    propertyCommonSql.GetStatements.Add(sbDeclare);
 
                     sbReference = new CodeVariableReferenceExpression("sb");
 
-                    propertyCommonInsert.Comments.Add(
-                        new CodeCommentStatement($"<summary> Common insert sql </summary>", true));
+                    propertyCommonSql.Comments.Add(
+                        new CodeCommentStatement($"<summary> Common sql </summary>", true));
 
-                    propertyCommonInsert.GetStatements.Add(this.AddTextExpressionToSb("WITH q1 AS(\nSELECT\n", sbReference));
+                    propertyCommonSql.GetStatements.Add(this.AddTextExpressionToSb("WITH q1 AS(\nSELECT\n", sbReference));
 
                     foreach (var col in table.Type.Columns)
                     {
@@ -2107,22 +2110,62 @@ namespace DbMetal.Generator
                             dbType += "(max)";
                         }
 
-                        propertyCommonInsert.GetStatements.Add(this.AddExpressionToSb(
-                            new CodeSnippetExpression($"\"t.value('({col.Member}/text())[1]', '{dbType}') AS[{col.Name}]\""),
+                        propertyCommonSql.GetStatements.Add(this.AddExpressionToSb(
+                            new CodeSnippetExpression($"\"t.value('({col.Member}/text())[1]', '{dbType}') AS [{col.Name}]{(col == table.Type.Columns.Last() ? "" : ", ")}\""),
                             sbReference));
                     }
 
-                    propertyCommonInsert.GetStatements.Add(this.AddTextExpressionToSb("\nFROM @xml.nodes('/Item') AS x(t)\n)\n\n",
-                        sbReference));
+                    propertyCommonSql.GetStatements.Add(this.AddTextExpressionToSb("\nFROM @xml.nodes('/Item') AS x(t)\n)\n\n", sbReference));
 
+                    propertyCommonSql.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
+
+                    cls.Members.Add(propertyCommonSql);
+
+                    var commonProperty = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "CommonSql");
+                    
+                    // Common insert Sql xml
+                    var propertyCommonInsertSql = new CodeMemberProperty();
+                    propertyCommonInsertSql.Type = new CodeTypeReference(typeof(string));
+                    propertyCommonInsertSql.Name = "CommonInsertSql";
+                    propertyCommonInsertSql.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+                    propertyCommonInsertSql.HasGet = true;
+
+                    propertyCommonInsertSql.Comments.Add(new CodeCommentStatement($"<summary> Common insert sql </summary>", true));
+                    
                     var tableCols = string.Join(", ", table.Type.Columns.Select(x => x.Name).ToArray());
-                    propertyCommonInsert.GetStatements.Add(this.AddTextExpressionToSb(
-                        $"INSERT INTO {table.Name} ({tableCols}) SELECT * FROM q1;",
-                        sbReference));
 
-                    propertyCommonInsert.GetStatements.Add(new CodeMethodReturnStatement(sbToStringInvoke));
+                    var textExpression = new CodePrimitiveExpression($"INSERT INTO {table.Name} ({tableCols}) SELECT * FROM q1;");
+                    var operatorExpression = new CodeBinaryOperatorExpression(commonProperty, CodeBinaryOperatorType.Add, textExpression);
 
-                    cls.Members.Add(propertyCommonInsert);
+                    propertyCommonInsertSql.GetStatements.Add(new CodeMethodReturnStatement(operatorExpression));
+
+                    cls.Members.Add(propertyCommonInsertSql);
+
+                    // Common update Sql xml
+                    var propertyCommonUpdateSql = new CodeMemberProperty();
+                    propertyCommonUpdateSql.Type = new CodeTypeReference(typeof(string));
+                    propertyCommonUpdateSql.Name = "CommonUpdateSql";
+                    propertyCommonUpdateSql.Attributes = MemberAttributes.Public | MemberAttributes.Final;
+                    propertyCommonUpdateSql.HasGet = true;
+
+                    propertyCommonUpdateSql.Comments.Add(new CodeCommentStatement($"<summary> Common update sql </summary>", true));
+                    
+                    var updateCols = string.Join(", ", table.Type.Columns
+                            .Where(x => !x.IsPrimaryKey)
+                            .Select(x => $"t.{x.Name}=q1.{x.Name}")
+                            .ToArray());
+
+                    var whereCols = string.Join(" AND ", table.Type.Columns
+                        .Where(x => x.IsPrimaryKey)
+                        .Select(x => $"t.{x.Name}=q1.{x.Name}")
+                        .ToArray());
+
+                    textExpression = new CodePrimitiveExpression($"UPDATE t SET {updateCols} FROM q1 JOIN {table.Name} t ON {whereCols};");
+                    operatorExpression = new CodeBinaryOperatorExpression(commonProperty, CodeBinaryOperatorType.Add, textExpression);
+
+                    propertyCommonUpdateSql.GetStatements.Add(new CodeMethodReturnStatement(operatorExpression));
+
+                    cls.Members.Add(propertyCommonUpdateSql);
                 }
             }
 
