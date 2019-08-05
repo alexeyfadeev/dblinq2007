@@ -1809,6 +1809,10 @@ namespace DbMetal.Generator
                     var index = pkColumns.FindIndex(x => x == column);
                     columnAttrArgs.Add(new CodeAttributeArgument("Order", new CodePrimitiveExpression(index)));                    
                 }
+                else if (this.NetCoreMode && column.DbType == "jsonb")
+                {
+                    columnAttrArgs.Add(new CodeAttributeArgument("TypeName", new CodePrimitiveExpression("jsonb")));
+                }
 
                 var field = new CodeMemberField(type, columnMember)
                 {
