@@ -283,6 +283,11 @@ namespace DbMetal.Generator
             // Tables
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string name = this.GetTableNamePluralized(table.Member);
@@ -306,6 +311,11 @@ namespace DbMetal.Generator
             // Add methods
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 var method = new CodeMemberMethod()
@@ -325,6 +335,11 @@ namespace DbMetal.Generator
             // AddRange methods
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string paramName = GetLowerCamelCase(this.GetTableNamePluralized(table.Member));
@@ -346,6 +361,11 @@ namespace DbMetal.Generator
             // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
                 if (!pkColumns.Any()) continue;
 
@@ -373,6 +393,11 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by PK)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
 
                     if (!pkColumns.Any()) continue;
@@ -402,6 +427,11 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by expression)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var tableType = new CodeTypeReference(table.Type.Name + ", bool");
 
                     var name = this.GetTableNamePluralized(table.Member);
@@ -426,6 +456,11 @@ namespace DbMetal.Generator
                 // Bulk update methods (by expression)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
                     var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
 
@@ -594,6 +629,11 @@ namespace DbMetal.Generator
             // Tables
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string name = this.GetTableNamePluralized(table.Member);
@@ -617,6 +657,11 @@ namespace DbMetal.Generator
             // Add methods
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string paramName = GetLowerCamelCase(table.Member);
@@ -641,6 +686,11 @@ namespace DbMetal.Generator
             // AddRange methods
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string paramName = GetLowerCamelCase(this.GetTableNamePluralized(table.Member));
@@ -665,6 +715,11 @@ namespace DbMetal.Generator
             // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
 
                 if (!pkColumns.Any()) continue;
@@ -699,6 +754,11 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by PK)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
 
                     if (!pkColumns.Any()) continue;
@@ -743,6 +803,11 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by expression)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var tableType = new CodeTypeReference(table.Type.Name + ", bool");
 
                     var name = this.GetTableNamePluralized(table.Member);
@@ -778,6 +843,11 @@ namespace DbMetal.Generator
                 // Bulk update methods (by expression)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
                     var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
 
@@ -849,6 +919,10 @@ namespace DbMetal.Generator
                 new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
                 "Commit"));
 
+            methodCommitTrans.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                "Dispose"));
+
             methodCommitTrans.Statements.Add(
                 new CodeAssignStatement(
                     new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
@@ -868,6 +942,10 @@ namespace DbMetal.Generator
             methodRollbackTrans.Statements.Add(new CodeMethodInvokeExpression(
                 new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
                 "Rollback"));
+
+            methodRollbackTrans.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "transaction"),
+                "Dispose"));
 
             methodRollbackTrans.Statements.Add(
                 new CodeAssignStatement(
@@ -963,7 +1041,13 @@ namespace DbMetal.Generator
                 var assignStatement = new CodeAssignStatement(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "connectionString"),
                     new CodeArgumentReferenceExpression("connectionString"));
 
+                var assignTransactionStatement = new CodeAssignStatement(new CodePropertyReferenceExpression(
+                        new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "Database"),
+                        "AutoTransactionsEnabled"),
+                    new CodePrimitiveExpression(false));
+
                 constructor.Statements.Add(assignStatement);
+                constructor.Statements.Add(assignTransactionStatement);
             }
 
             constructor.Comments.Add(new CodeCommentStatement("<summary> Database context constructor </summary>", true));
@@ -971,6 +1055,11 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string name = this.GetTableNamePluralized(table.Member);
@@ -1008,6 +1097,11 @@ namespace DbMetal.Generator
 
                     foreach (var item in complexKeyTables)
                     {
+                        if (item.table.Name.StartsWith("hdb_catalog."))
+                        {
+                            continue;
+                        }
+
                         var invk = new CodeMethodInvokeExpression(new CodeArgumentReferenceExpression("modelBuilder"),
                             $"Entity<{item.table.Member}>");
 
@@ -1085,6 +1179,11 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 privateListNames.Add(table, GetLowerCamelCase(this.GetTableNamePluralized(table.Member)));
             }
 
@@ -1128,6 +1227,11 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 var field = new CodeMemberField
@@ -1142,6 +1246,11 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string name = GetTableNamePluralized(table.Member);
@@ -1169,6 +1278,11 @@ namespace DbMetal.Generator
             // Add methods
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string paramName = GetLowerCamelCase(table.Member);
@@ -1215,6 +1329,7 @@ namespace DbMetal.Generator
 
                 method.Statements.Add(addStatement);
 
+                /*
                 if ((from a in table.Type.Associations where a.IsForeignKey select a).Any())
                 {
                     var linksStatement = new CodeMethodInvokeExpression(
@@ -1224,6 +1339,7 @@ namespace DbMetal.Generator
 
                     method.Statements.Add(linksStatement);
                 }
+                */
 
                 method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
 
@@ -1233,6 +1349,11 @@ namespace DbMetal.Generator
             // AddRange methods
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 string paramName = GetLowerCamelCase(this.GetTableNamePluralized(table.Member));
@@ -1281,6 +1402,11 @@ namespace DbMetal.Generator
             // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
                 if (!pkColumns.Any()) continue;
 
@@ -1315,6 +1441,11 @@ namespace DbMetal.Generator
                 // Delete methods (by PK)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
                     if (!pkColumns.Any()) continue;
 
@@ -1378,6 +1509,11 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by expression)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var tableType = new CodeTypeReference(table.Type.Name + ", bool");
 
                     var name = this.GetTableNamePluralized(table.Member);
@@ -1455,6 +1591,11 @@ namespace DbMetal.Generator
                 // Bulk update methods (by expression)
                 foreach (Table table in database.Tables)
                 {
+                    if (table.Name.StartsWith("hdb_catalog."))
+                    {
+                        continue;
+                    }
+
                     var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
                     var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
 
@@ -1559,6 +1700,11 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var tableType = new CodeTypeReference(table.Type.Name);
 
                 var listField = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), privateListNames[table]);
@@ -1619,6 +1765,11 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 var relatedAssociations = (from a in table.Type.Associations
                                            where a.IsForeignKey
                                            select a)

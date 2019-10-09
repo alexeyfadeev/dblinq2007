@@ -264,6 +264,11 @@ namespace DbMetal.Generator.Implementation
             // Entities
             foreach (var table in dbSchema.Tables)
             {
+                if (table.Name.StartsWith("hdb_catalog."))
+                {
+                    continue;
+                }
+
                 string efFileName = $"{entityDirPrefix}{table.Member}.cs";
                 parameters.Write("<<< writing EF models into file '{0}'", efFileName);
 

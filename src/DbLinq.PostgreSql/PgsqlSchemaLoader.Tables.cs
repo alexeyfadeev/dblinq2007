@@ -39,7 +39,8 @@ namespace DbLinq.PostgreSql
 SELECT table_name, table_schema
 FROM information_schema.TABLES
 WHERE table_catalog=:db
-AND table_schema NOT IN ('pg_catalog','information_schema')";
+AND table_schema NOT IN ('pg_catalog','information_schema')
+AND table_type='BASE TABLE'";
 
             return DataCommand.Find<IDataName>(connectionString, sql, ":db", databaseName, ReadDataNameAndSchema);
         }
