@@ -137,9 +137,9 @@ namespace DbMetal.Generator.Implementation
             bool error = false;
             foreach (var association in table.Type.Associations)
             {
-                var otherType           = database.Tables.Single(t => t.Type.Name == association.Type).Type;
+                var otherType           = database.Tables.First(t => t.Type.Name == association.Type).Type;
                 var otherAssociation    = otherType.Associations.FirstOrDefault(a => a.Type == table.Type.Name && a.ThisKey == association.OtherKey);
-                var otherColumn         = otherType.Columns.Single(c => c.Member == association.OtherKey);
+                var otherColumn         = otherType.Columns.FirstOrDefault(c => c.Member == association.OtherKey);
 
                 if (association.CardinalitySpecified && association.Cardinality == Cardinality.Many && association.IsForeignKey)
                 {

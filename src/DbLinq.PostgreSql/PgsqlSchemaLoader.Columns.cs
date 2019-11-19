@@ -92,11 +92,13 @@ WITH description AS
 ),
 information AS
 (
-    SELECT table_schema, table_name, column_name, is_nullable, data_type, domain_schema, domain_name,
-        column_default, character_maximum_length, numeric_precision, numeric_scale, udt_name
-    FROM information_schema.COLUMNS
-    WHERE table_catalog=:db
-    AND table_schema NOT IN ('pg_catalog','information_schema')
+    SELECT c.table_schema, c.table_name, c.column_name, c.is_nullable, c.data_type, c.domain_schema, c.domain_name,
+        c.column_default, c.character_maximum_length, c.numeric_precision, c.numeric_scale, c.udt_name
+    FROM information_schema.COLUMNS c
+    JOIN information_schema.TABLES t ON t.table_schema=c.table_schema AND t.table_name=c.table_name AND t.table_catalog=c.table_catalog
+    WHERE c.table_catalog=:db
+    AND t.table_type='BASE TABLE'
+    AND c.table_schema NOT IN ('pg_catalog','information_schema')
 )
 
 SELECT i.*, d.comment
