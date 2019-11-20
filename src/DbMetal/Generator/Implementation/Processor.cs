@@ -264,7 +264,7 @@ namespace DbMetal.Generator.Implementation
             // Entities
             foreach (var table in dbSchema.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }

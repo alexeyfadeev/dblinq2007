@@ -283,7 +283,7 @@ namespace DbMetal.Generator
             // Tables
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -311,7 +311,7 @@ namespace DbMetal.Generator
             // Add methods
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -335,7 +335,7 @@ namespace DbMetal.Generator
             // AddRange methods
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -361,7 +361,7 @@ namespace DbMetal.Generator
             // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -393,7 +393,7 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by PK)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -427,7 +427,7 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by expression)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -456,7 +456,7 @@ namespace DbMetal.Generator
                 // Bulk update methods (by expression)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -629,7 +629,7 @@ namespace DbMetal.Generator
             // Tables
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -657,7 +657,7 @@ namespace DbMetal.Generator
             // Add methods
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -686,7 +686,7 @@ namespace DbMetal.Generator
             // AddRange methods
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -715,7 +715,7 @@ namespace DbMetal.Generator
             // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -754,7 +754,7 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by PK)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -803,7 +803,7 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by expression)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -843,7 +843,7 @@ namespace DbMetal.Generator
                 // Bulk update methods (by expression)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -1055,7 +1055,7 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1097,7 +1097,7 @@ namespace DbMetal.Generator
 
                     foreach (var item in complexKeyTables)
                     {
-                        if (item.table.Name.StartsWith("hdb_catalog."))
+                        if (item.table.Name.StartsWith("hdb_catalog.") || item.table.Name.StartsWith("import."))
                         {
                             continue;
                         }
@@ -1179,7 +1179,7 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1227,7 +1227,7 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1246,7 +1246,7 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1278,7 +1278,7 @@ namespace DbMetal.Generator
             // Add methods
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1349,7 +1349,7 @@ namespace DbMetal.Generator
             // AddRange methods
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1402,7 +1402,7 @@ namespace DbMetal.Generator
             // Get methods (by PK)
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1441,7 +1441,7 @@ namespace DbMetal.Generator
                 // Delete methods (by PK)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -1509,7 +1509,7 @@ namespace DbMetal.Generator
                 // Bulk delete methods (by expression)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -1591,7 +1591,7 @@ namespace DbMetal.Generator
                 // Bulk update methods (by expression)
                 foreach (Table table in database.Tables)
                 {
-                    if (table.Name.StartsWith("hdb_catalog."))
+                    if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                     {
                         continue;
                     }
@@ -1700,7 +1700,7 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
@@ -1721,11 +1721,15 @@ namespace DbMetal.Generator
 
                     var otherTable = database.Tables.FirstOrDefault(x => x.Type.Name == ra.Type);
 
-                    var statement = new CodeMethodInvokeExpression(listField, "ForEach",
-                        new CodeSnippetExpression(
-                            $"t => t.{ra.Member} = this.{privateListNames[otherTable]}.FirstOrDefault(k => k.{otherKey} == t.{thisKey})"));
+                    if (privateListNames.ContainsKey(otherTable))
+                    {
 
-                    methodLinks.Statements.Add(statement);
+                        var statement = new CodeMethodInvokeExpression(listField, "ForEach",
+                            new CodeSnippetExpression(
+                                $"t => t.{ra.Member} = this.{privateListNames[otherTable]}.FirstOrDefault(k => k.{otherKey} == t.{thisKey})"));
+
+                        methodLinks.Statements.Add(statement);
+                    }
                 }
             }
 
@@ -1765,7 +1769,7 @@ namespace DbMetal.Generator
 
             foreach (Table table in database.Tables)
             {
-                if (table.Name.StartsWith("hdb_catalog."))
+                if (table.Name.StartsWith("hdb_catalog.") || table.Name.StartsWith("import."))
                 {
                     continue;
                 }
