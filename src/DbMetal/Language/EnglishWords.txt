@@ -9416,6 +9416,7 @@ cactuses
 cacuminal
 cad
 CAD/CAM
+cadastral
 cadaver
 cadaverous
 caddie
@@ -13717,6 +13718,7 @@ cone
 cones
 Conestoga
 coney
+conf
 confab
 confabulate
 confabulation
@@ -13770,6 +13772,7 @@ confider
 confides
 confiding
 confidingly
+config
 configurable
 configuration
 configurations
@@ -23023,6 +23026,7 @@ exclusion
 exclusionary
 exclusions
 exclusive
+exclusives
 exclusively
 exclusiveness
 exclusivity
@@ -23420,6 +23424,7 @@ expressway
 expropriate
 expropriation
 expropriator
+exprot
 expulsion
 expunction
 expunge
@@ -34877,6 +34882,7 @@ Iowan
 IPA
 IPC
 ipecac
+ipoteka
 Ipswich
 IQ
 Ir
@@ -44267,6 +44273,7 @@ nonrefundable
 nonreligious
 nonrenewable
 nonrepresentational
+nonres
 nonresident
 nonresidential
 nonresidual
@@ -45722,6 +45729,8 @@ orientation
 orientations
 oriented
 orienting
+orientir
+orientirs
 orients
 orifice
 orifices
@@ -45743,6 +45752,7 @@ Orin
 Orinoco
 oriole
 Orion
+oris
 orison
 Orkney
 Orlando
@@ -50543,6 +50553,7 @@ prefixes
 prefixing
 preform
 preformatting
+prefs
 pregnancy
 pregnant
 preheat
@@ -62411,6 +62422,7 @@ spout
 spouted
 spouting
 spouts
+spr
 Sprague
 sprain
 sprang
@@ -67429,6 +67441,7 @@ tizzy
 TKO
 Tl
 TLC
+tmp
 TN
 TNT
 to
@@ -75022,6 +75035,8 @@ zeta
 Zeus
 Zhdanov
 Zhengzhou
+zhilkomp
+zhilkomps
 Ziegfeld
 Ziegfelds
 Ziegler
