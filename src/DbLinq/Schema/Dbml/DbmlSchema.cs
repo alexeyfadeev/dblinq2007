@@ -25,6 +25,8 @@
 #endregion
 namespace DbLinq.Schema.Dbml
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Xml.Serialization;
 
     /// <summary>
@@ -33,7 +35,7 @@ namespace DbLinq.Schema.Dbml
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "2.0.50727.1432")]
     [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    ////[System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://schemas.microsoft.com/linqtosql/dbml/2007")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://schemas.microsoft.com/linqtosql/dbml/2007", IsNullable = false)]
@@ -349,6 +351,24 @@ namespace DbLinq.Schema.Dbml
         }
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+        public void ReplaceTables(IList<Table> tables)
+        {
+            var diffTableTypes = this.Table.Except(tables)
+                .Select(x => x.Type.Name).ToList();
+
+            foreach (var table in tables)
+            {
+                var associationsToRemove = table.Type.Associations
+                    .Where(a => diffTableTypes.Contains(a.Type))
+                    .Select(x => (object)x)
+                    .ToList();
+
+                table.Type.RemoveItems(associationsToRemove);
+            }
+
+            this.Table = tables.ToArray();
+        }
 
         protected void RaisePropertyChanged(string propertyName)
         {
@@ -1174,6 +1194,11 @@ namespace DbLinq.Schema.Dbml
         }
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+        public void RemoveItems(IList<object> items)
+        {
+            Items = Items.Where(x => !items.Contains(x)).ToArray();
+        }
 
         protected void RaisePropertyChanged(string propertyName)
         {

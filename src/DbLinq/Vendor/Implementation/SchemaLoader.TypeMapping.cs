@@ -115,7 +115,7 @@ namespace DbLinq.Vendor.Implementation
 
             // int8
             case "tinyint":
-                if (dataType.Length == 1)
+                if (dataType.Length == 1 || dataType.FullType.EndsWith("(1)"))
                     return typeof(Boolean);
                 // tinyint is supposed to be signed
                 // but we can have explicit sign

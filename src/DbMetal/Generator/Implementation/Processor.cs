@@ -36,9 +36,12 @@ using DbLinq.Vendor;
 using DbMetal.Schema;
 
 using Mono.Options;
+using Newtonsoft.Json;
 
 namespace DbMetal.Generator.Implementation
 {
+    using DbLinq.Schema.Dbml.Adapter;
+
 #if !MONO_STRICT
     public
 #endif
@@ -70,24 +73,25 @@ namespace DbMetal.Generator.Implementation
 
         public void Process(string[] args)
         {
-            var parameters = new Parameters { Log = Log };
+            Parameters parameters;
 
-            parameters.WriteHeader();
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Specify configuration file path.");
+                return;
+            }
 
             try
             {
-                parameters.Parse(args);
+                var path = args[0];
+                var json = File.ReadAllText(path);
+                parameters = JsonConvert.DeserializeObject<Parameters>(json);
+                parameters.Log = Log;
+                parameters.WriteHeader();
             }
             catch (Exception e)
             {
                 Output.WriteErrorLine(Log, e.Message);
-                PrintUsage(parameters);
-                return;
-            }
-
-            if (args.Length == 0 || parameters.Help)
-            {
-                PrintUsage(parameters);
                 return;
             }
 
@@ -346,6 +350,23 @@ namespace DbMetal.Generator.Implementation
                 dbSchema = schemaLoader.Load(parameters.Database, nameAliases,
                     new NameFormat(parameters.Pluralize, GetCase(parameters), new CultureInfo(parameters.Culture)),
                     parameters.Sprocs, parameters.Namespace, parameters.Namespace, parameters.ContextName);
+
+                if (parameters.IncludeOnlyTables?.Any() == true)
+                {
+                    var neededTables = dbSchema.Tables
+                        .Where(x => parameters.IncludeOnlyTables.Contains(x.Name))
+                        .ToList();
+
+                    dbSchema.ReplaceTables(neededTables);
+                }
+                else if (parameters.IgnoreTables?.Any() == true)
+                {
+                    var neededTables = dbSchema.Tables
+                        .Where(x => !parameters.IgnoreTables.Contains(x.Name))
+                        .ToList();
+
+                    dbSchema.ReplaceTables(neededTables);
+                }
 
                 dbSchema.Provider = parameters.Provider;
                 dbSchema.Tables.Sort(new LambdaComparer<Table>((x, y) => (x.Type.Name.CompareTo(y.Type.Name))));

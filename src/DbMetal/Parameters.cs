@@ -103,13 +103,7 @@ namespace DbMetal
         /// <summary>
         /// this is the "input file" parameter
         /// </summary>
-        public string SchemaXmlFile
-        {
-            get
-            {
-                return Extra.Count > 0 ? Extra[0] : null;
-            }
-        }
+        public string SchemaXmlFile { get; set; }
 
         public bool Schema { get; set; }
 
@@ -181,19 +175,9 @@ namespace DbMetal
         public bool GenerateTimestamps { get; set; }
 
         /// <summary>
-        /// show help
-        /// </summary>
-        public bool Help { get; set; }
-
-        /// <summary>
         /// Show stack traces in error messages, etc., instead of just the message.
         /// </summary>
         public bool Debug { get; set; }
-
-        /// <summary>
-        /// non-option parameters
-        /// </summary>
-        public IList<string> Extra = new List<string>();
 
         /// <summary>
         /// DB-context class name
@@ -225,13 +209,22 @@ namespace DbMetal
         /// </summary>
         public string EntityFolder { get; set; }
 
+        /// <summary>
+        /// Tables to ignore
+        /// </summary>
+        public List<string> IgnoreTables { get; set; }
+
+        /// <summary>
+        /// If this parameter specified, only these tables will be included
+        /// </summary>
+        public List<string> IncludeOnlyTables { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
             get { return log ?? Console.Out; }
             set { log = value; }
         }
-
 
         protected OptionSet Options;
 
@@ -243,130 +236,6 @@ namespace DbMetal
             MemberAttributes = new List<string>();
             GenerateTimestamps = true;
             EntityInterfaces = new []{ "INotifyPropertyChanging", "INotifyPropertyChanged" };
-        }
-
-        public void Parse(IList<string> args)
-        {
-            Options = new OptionSet() {
-                 // SQLMetal compatible
-                { "c|conn=",
-                  "Database {CONNECTION STRING}. Cannot be used with /server, "
-                  +"/user or /password options.",
-                  conn => Conn = conn },
-                 // SQLMetal compatible
-                { "u|user=",
-                  "Login user {NAME}.",
-                  name => User = name },
-                 // SQLMetal compatible
-                { "p|password=",
-                  "Login {PASSWORD}.",
-                  password => Password = password },
-                 // SQLMetal compatible
-                { "s|server=",
-                  "Database server {NAME}.",
-                  name => Server = name },
-                 // SQLMetal compatible
-                { "d|database=",
-                  "Database catalog {NAME} on server.",
-                  name => Database = name },
-                { "provider=",
-                  "Specify {PROVIDER}. May be Ingres, MySql, Oracle, OracleODP, PostgreSql or Sqlite.",
-                  provider => Provider = provider },
-                { "with-schema-loader=",
-                  "ISchemaLoader implementation {TYPE}.",
-                  type => DbLinqSchemaLoaderProvider = type },
-                { "with-dbconnection=",
-                  "IDbConnection implementation {TYPE}.",
-                  type => DatabaseConnectionProvider = type },
-                { "with-sql-dialect=",
-                  "IVendor implementation {TYPE}.",
-                  type => SqlDialectType = type },
-                 // SQLMetal compatible
-                { "dbml=",
-                  "Output as dbml to {FILE}. Cannot be used with /map option.",
-                  file => Dbml = file },
-                 // SQLMetal compatible
-                { "language=",
-                  "Language {NAME} for source code: C#, C#2 or VB "
-                  +"(default: derived from extension on code file name).",
-                  name => Language = name },
-                { "aliases=",
-                  "Use mapping {FILE}.",
-                  file => Aliases = file },
-                { "schema",
-                  "Generate schema in code files (default: enabled).",
-                  v => Schema = v != null },
-                 // SQLMetal compatible
-                { "namespace=",
-                  "Namespace {NAME} of generated code (default: no namespace).",
-                  name => Namespace = name },
-                 // SQLMetal compatible
-                { "entitybase=",
-                  "Base {TYPE} of entity classes in the generated code "
-                  +"(default: entities have no base class).",
-                  type => EntityBase = type },
-                { "member-attribute=",
-                  "{ATTRIBUTE} for entity members in the generated code, "
-                  +"can be specified multiple times.",
-                  attribute => MemberAttributes.Add(attribute) },
-                { "generate-type=",
-                  "Generate only the {TYPE} selected, can be specified multiple times "
-                  +"and does not prevent references from being generated (default: "
-                  +"generate a DataContex subclass and all the entities in the schema).",
-                  type => GenerateTypes.Add(type) },
-                { "generate-equals-hash",
-                  "Generates overrides for Equals() and GetHashCode() methods.",
-                  v => GenerateEqualsHash = v != null },
-                 // SQLMetal compatible
-                { "sprocs",
-                  "Extract stored procedures.",
-                  v => Sprocs = v != null},
-                 // SQLMetal compatible
-                { "pluralize",
-                  "Automatically pluralize or singularize class and member names "
-                  +"using specified culture rules.",
-                  v => Pluralize = v != null},
-                { "culture=",
-                  "Specify {CULTURE} for word recognition and pluralization (default: \"en\").",
-                  culture => Culture = culture },
-                { "case=",
-                  "Transform names with the indicated {STYLE} "
-                  +"(default: net; may be: leave, pascal, camel, net).",
-                  style => Case = style },
-                { "generate-timestamps",
-                  "Generate timestampes in the generated code (default: enabled).",
-                  v => GenerateTimestamps = v != null },
-                { "readline",
-                  "Wait for a key to be pressed after processing.",
-                  v => Readline = v != null },
-                { "debug",
-                  "Enables additional information to help with debugging, " + 
-                  "such as full stack traces in error messages.",
-                  v => Debug = v != null },
-                { "h|?|help",
-                  "Show this help",
-                  v => Help = v != null },
-                { "context-name=",
-                  "DB-context class name ",
-                  v => this.ContextName = v },
-                { "multi-insert",
-                  "Enables ExecuteMultiInsert method",
-                  v => this.MultiInsert = v != null },
-                { "repository",
-                  "Enables Repository, IRepository and MockRepository generating",
-                  v => this.IRepository = v != null },
-                { "core",
-                  "Enables .Net Core mode",
-                  v => this.NetCoreMode = v != null },
-                { "bulk",
-                  "Includes Z.EntityFramework.Plus bulk extension",
-                  v => this.BulkExtensions = v != null },
-                { "entity-folder=",
-                  "Separate folder for entity classes ",
-                  v => this.EntityFolder = v },
-            };
-
-            Extra = Options.Parse(args);
         }
 
         #region Help
