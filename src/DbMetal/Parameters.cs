@@ -190,14 +190,9 @@ namespace DbMetal
         public bool MultiInsert { get; set; }
 
         /// <summary>
-        /// Generate IRepository interface, Repository and MockRepository partial implementation
+        /// Generate IContext interface
         /// </summary>
-        public bool IRepository { get; set; }
-
-        /// <summary>
-        /// .Net Core mode
-        /// </summary>
-        public bool NetCoreMode { get; set; }
+        public bool IContext { get; set; }
 
         /// <summary>
         /// Use Z.EntityFramework.Plus extension

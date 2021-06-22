@@ -236,7 +236,6 @@ namespace DbMetal.Generator.Implementation
 
             var codeGenerator = (CodeDomGenerator)generator;
 
-            codeGenerator.NetCoreMode = parameters.NetCoreMode;
             codeGenerator.EntityFolder = parameters.EntityFolder;
             codeGenerator.ContextName = parameters.ContextName;
             codeGenerator.SqlXml = parameters.Provider == "SqlServer";
@@ -279,61 +278,19 @@ namespace DbMetal.Generator.Implementation
                 this.ProcessFile(efFileName, true);
             }
 
-            // Generate Repository into separate files, if it's needed
-            if (parameters.IRepository)
+            // Generate IContext into separate file, if it's needed
+            if (parameters.IContext)
             {
                 // IRepository
-                string interfaceFileName = $"I{parameters.ContextName}Repository.cs";
+                string interfaceFileName = $"I{parameters.ContextName}DbContext.cs";
                 parameters.Write("<<< writing IRepository into file '{0}'", interfaceFileName);
 
                 using (var streamWriterIContext = new StreamWriter(interfaceFileName))
                 {
-                    codeGenerator.WriteIRepository(streamWriterIContext, dbSchema, generationContext, parameters.BulkExtensions);
+                    codeGenerator.WriteIContext(streamWriterIContext, dbSchema, generationContext, parameters.BulkExtensions);
                 }
 
                 this.ProcessFile(interfaceFileName);
-
-                // Repository
-                string repoFileName = parameters.ContextName + "Repository.cs";
-                parameters.Write("<<< writing Repository into file '{0}'", repoFileName);
-
-                using (var streamWriterRepo = new StreamWriter(repoFileName))
-                {
-                    codeGenerator.WriteRepository(streamWriterRepo,dbSchema, generationContext, parameters.BulkExtensions);
-                }
-
-                this.ProcessFile(repoFileName);
-
-                // MockRepository
-                string mockFileName = $"Mock{parameters.ContextName}Repository.cs";
-
-                parameters.Write("<<< writing MockContext into file '{0}'", mockFileName);
-
-                using (var streamWriterMockContext = new StreamWriter(mockFileName))
-                {
-                    codeGenerator.WriteMockRepository(
-                        streamWriterMockContext,
-                        dbSchema,
-                        generationContext,
-                        parameters.BulkExtensions);
-                }
-
-                this.ProcessFile(mockFileName);
-
-                // MockRepositoryHelper
-                string helperFileName = $"Mock{parameters.ContextName}RepositoryHelper.cs";
-
-                parameters.Write("<<< writing MockContextHelper into file '{0}'", helperFileName);
-
-                using (var streamWriterHelperContext = new StreamWriter(helperFileName))
-                {
-                    codeGenerator.WriteHelper(
-                        streamWriterHelperContext,
-                        dbSchema,
-                        generationContext);
-                }
-
-                this.ProcessFile(helperFileName);
             }
         }
 
@@ -402,6 +359,7 @@ namespace DbMetal.Generator.Implementation
             string text = File.ReadAllText(filePath);
 
             text = text.Replace("{ get; set; };", "{ get; set; }");
+            text = text.Replace("{ get; };", "{ get; }");
 
             if (replaceToVirtual)
             {

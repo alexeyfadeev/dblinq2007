@@ -46,6 +46,8 @@ using DbLinq.Schema.Implementation;
 
 namespace DbMetal.Generator
 {
+    using System.Threading.Tasks;
+
 #if !MONO_STRICT
     public
 #endif
@@ -74,8 +76,6 @@ namespace DbMetal.Generator
         public string Extension {
             get { return "*"; }
         }
-
-        public bool NetCoreMode { get; set; }
 
         public string EntityFolder { get; set; }
 
@@ -134,12 +134,12 @@ namespace DbMetal.Generator
                     });
         }
 
-        public void WriteIRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
+        public void WriteIContext(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
             Context = context;
 
             Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                this.GenerateIRepositoryDomModel(dbSchema, bulkExtensions),
+                this.GenerateIContextDomModel(dbSchema, bulkExtensions),
                 textWriter,
                 new CodeGeneratorOptions()
                 {
@@ -148,6 +148,7 @@ namespace DbMetal.Generator
                 });
         }
 
+        /*
         public void WriteRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
             Context = context;
@@ -161,6 +162,7 @@ namespace DbMetal.Generator
                         IndentString = "\t",
                     });
         }
+        */
 
         public void WriteMockRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
@@ -242,15 +244,15 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.ComponentModel.DataAnnotations.Schema"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Mapping"));
 
             nameSpace.Types.Add(this.GenerateEfClass(table, database));
 
             return nameSpace;
         }
 
-        protected virtual CodeNamespace GenerateIRepositoryDomModel(Database database, bool bulkExtensions)
+        protected virtual CodeNamespace GenerateIContextDomModel(Database database, bool bulkExtensions)
         {
             CheckLanguageWords(Context.Parameters.Culture);
 
@@ -259,26 +261,25 @@ namespace DbMetal.Generator
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
             nameSpace.Imports.Add(new CodeNamespaceImport("System"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-
-            if (bulkExtensions)
-            {
-                nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq.Expressions"));
-            }
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
 
             if (!string.IsNullOrWhiteSpace(this.EntityFolder))
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
-            var iface = new CodeTypeDeclaration($"I{this.ContextName}Repository")
+            nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Data"));
+
+            var iface = new CodeTypeDeclaration($"I{this.ContextName}Context")
             {
                 IsInterface = true,
                 IsPartial = true
             };
 
-            iface.BaseTypes.Add(new CodeTypeReference("IDisposable"));
+            iface.BaseTypes.Add(new CodeTypeReference("IDataContext"));
 
             // Tables
             foreach (Table table in database.Tables)
@@ -297,168 +298,18 @@ namespace DbMetal.Generator
                 field.HasGet = true;
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
+                field.Name += " { get }";
 
                 iface.Members.Add(field);
             }
 
-            var voidTypeRef = new CodeTypeReference(typeof(void));
+            var taskTypeRef = new CodeTypeReference("Task");
 
-            // Add methods
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                var method = new CodeMemberMethod()
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "Add" + table.Member,
-                    ReturnType = voidTypeRef
-                };
-
-                method.Comments.Add(new CodeCommentStatement($"<summary> Add {table.Member} </summary>", true));
-
-                method.Parameters.Add(new CodeParameterDeclarationExpression(tableType, GetLowerCamelCase(table.Member)));
-
-                iface.Members.Add(method);
-            }
-
-            // AddRange methods
-            foreach (Table table in database.Tables)
-            {
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                string paramName = GetLowerCamelCase(this.GetTableNamePluralized(table.Member));
-
-                var method = new CodeMemberMethod
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "AddRange" + this.GetTableNamePluralized(table.Member),
-                    ReturnType = voidTypeRef
-                };
-
-                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("IEnumerable", tableType), paramName));
-
-                method.Comments.Add(new CodeCommentStatement($"<summary> Add range of {table.Member} </summary>", true));
-
-                iface.Members.Add(method);
-            }
-
-            // Get methods (by PK)
-            foreach (Table table in database.Tables)
-            {
-                var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-                if (!pkColumns.Any()) continue;
-
-                var tableType = new CodeTypeReference(table.Type.Name);
-
-                var method = new CodeMemberMethod()
-                {
-                    Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                    Name = "Get" + table.Member,
-                    ReturnType = tableType
-                };
-
-                foreach (var col in pkColumns)
-                {
-                    method.Parameters.Add(new CodeParameterDeclarationExpression(ToCodeTypeReference(col), GetStorageFieldName(col).Replace("_", "")));
-                }
-
-                method.Comments.Add(new CodeCommentStatement($"<summary> Get {table.Member} </summary>", true));
-
-                iface.Members.Add(method);
-            }
-
-            if (bulkExtensions)
-            {
-                // Bulk delete methods (by PK)
-                foreach (Table table in database.Tables)
-                {
-                    var pkColumns = table.Type.Columns.Where(col => col.IsPrimaryKey).ToList();
-
-                    if (!pkColumns.Any()) continue;
-
-                    var method = new CodeMemberMethod()
-                    {
-                        Attributes =
-                            MemberAttributes.Public | MemberAttributes.Final,
-                        Name = "BulkDelete" + table.Member,
-                        ReturnType = voidTypeRef
-                    };
-
-                    foreach (var col in pkColumns)
-                    {
-                        method.Parameters.Add(
-                            new CodeParameterDeclarationExpression(
-                                ToCodeTypeReference(col),
-                                GetStorageFieldName(col).Replace("_", "")));
-                    }
-
-                    method.Comments.Add(
-                        new CodeCommentStatement($"<summary> Bulk delete {table.Member} </summary>", true));
-
-                    iface.Members.Add(method);
-                }
-
-                // Bulk delete methods (by expression)
-                foreach (Table table in database.Tables)
-                {
-                    var tableType = new CodeTypeReference(table.Type.Name + ", bool");
-
-                    var name = this.GetTableNamePluralized(table.Member);
-
-                    var method = new CodeMemberMethod
-                    {
-                        Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                        Name = "BulkDelete" + name,
-                        ReturnType = voidTypeRef
-                    };
-
-                    method.Parameters.Add(
-                        new CodeParameterDeclarationExpression(
-                            new CodeTypeReference("Expression", new CodeTypeReference("Func", tableType)),
-                            "filerExpression"));
-
-                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk delete {name} </summary>", true));
-
-                    iface.Members.Add(method);
-                }
-
-                // Bulk update methods (by expression)
-                foreach (Table table in database.Tables)
-                {
-                    var paramType1 = new CodeTypeReference($"{table.Type.Name}, {table.Type.Name}");
-                    var paramType2 = new CodeTypeReference(table.Type.Name + ", bool");
-
-                    var name = this.GetTableNamePluralized(table.Member);
-
-                    var method = new CodeMemberMethod
-                                     {
-                                         Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                                         Name = "BulkUpdate" + name,
-                                         ReturnType = voidTypeRef
-                                     };
-
-                    method.Parameters.Add(
-                        new CodeParameterDeclarationExpression(
-                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType1)),
-                            "updateExpression"));
-
-                    method.Parameters.Add(
-                        new CodeParameterDeclarationExpression(
-                            new CodeTypeReference("Expression", new CodeTypeReference("Func", paramType2)),
-                            "filerExpression"));
-
-                    method.Comments.Add(new CodeCommentStatement($"<summary> Bulk update {name} </summary>", true));
-
-                    iface.Members.Add(method);
-                }
-            }
-            
             var methodBeginTrans = new CodeMemberMethod()
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
                 Name = "BeginTransaction",
-                ReturnType = voidTypeRef
+                ReturnType = new CodeTypeReference("DataConnectionTransaction")
             };
 
             methodBeginTrans.Comments.Add(new CodeCommentStatement($"<summary> Begin Transaction </summary>", true));
@@ -468,10 +319,11 @@ namespace DbMetal.Generator
             var methodCommitTrans = new CodeMemberMethod()
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                Name = "CommitTransaction",
-                ReturnType = voidTypeRef
+                Name = "CommitTransactionAsync",
+                ReturnType = taskTypeRef
             };
 
+            methodCommitTrans.Parameters.Add(new CodeParameterDeclarationExpression("CancellationToken", "cancellationToken = default"));
             methodCommitTrans.Comments.Add(new CodeCommentStatement($"<summary> Commit Transaction </summary>", true));
 
             iface.Members.Add(methodCommitTrans);
@@ -479,30 +331,20 @@ namespace DbMetal.Generator
             var methodRollbackTrans = new CodeMemberMethod()
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                Name = "RollbackTransaction",
-                ReturnType = voidTypeRef
+                Name = "RollbackTransactionAsync",
+                ReturnType = taskTypeRef
             };
 
+            methodRollbackTrans.Parameters.Add(new CodeParameterDeclarationExpression("CancellationToken", "cancellationToken = default"));
             methodRollbackTrans.Comments.Add(new CodeCommentStatement($"<summary> Rollback Transaction </summary>", true));
 
             iface.Members.Add(methodRollbackTrans);
-
-            var methodSubmit = new CodeMemberMethod()
-            {
-                Attributes = MemberAttributes.Public | MemberAttributes.Final,
-                Name = "SaveChanges",
-                ReturnType = voidTypeRef
-            };
-
-            methodSubmit.Comments.Add(new CodeCommentStatement($"<summary> Save changes </summary>", true));
-
-            iface.Members.Add(methodSubmit);
 
             nameSpace.Types.Add(iface);
 
             return nameSpace;
         }
-
+        /*
         protected virtual CodeNamespace GenerateRepositoryDomModel(Database database, bool bulkExtensions)
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
@@ -912,7 +754,7 @@ namespace DbMetal.Generator
 
             return nameSpace;
         }
-
+        */
         protected virtual CodeNamespace GenerateEfContextDomModel(Database database, string provider)
         {
             this.CheckLanguageWords(this.Context.Parameters.Culture);
@@ -921,12 +763,14 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport(this.NetCoreMode ? "Microsoft.EntityFrameworkCore" : "System.Data.Entity"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
 
             if (!string.IsNullOrWhiteSpace(this.EntityFolder))
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
+
+            nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Data"));
 
             var cls = new CodeTypeDeclaration(this.ContextName + "DbContext")
             {
@@ -936,19 +780,22 @@ namespace DbMetal.Generator
 
             cls.Comments.Add(new CodeCommentStatement("<summary> Database context </summary>", true));
 
-            cls.BaseTypes.Add(new CodeTypeReference("DbContext"));
+            cls.BaseTypes.Add(new CodeTypeReference("DataConnection"));
+            cls.BaseTypes.Add(new CodeTypeReference($"I{this.ContextName}DbContext"));
 
             // Constructors
             var constructor = new CodeConstructor
             {
                 Attributes = MemberAttributes.Public,
-                Parameters = { new CodeParameterDeclarationExpression(typeof(string), "connectionString") },
+                Parameters = { new CodeParameterDeclarationExpression(typeof(string), "providerName") },
             };
 
-            if (!this.NetCoreMode)
-            {
-                constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("connectionString"));
-            }
+            constructor.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "connectionString"));
+
+            constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("providerName"));
+            constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("connectionString"));
+
+            /*
             else
             {
                 var fieldConnStr = new CodeMemberField
@@ -965,6 +812,7 @@ namespace DbMetal.Generator
 
                 constructor.Statements.Add(assignStatement);
             }
+            */
 
             constructor.Comments.Add(new CodeCommentStatement("<summary> Database context constructor </summary>", true));
             cls.Members.Add(constructor);
@@ -979,16 +827,17 @@ namespace DbMetal.Generator
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
                     Name = name,
-                    Type = new CodeTypeReference("DbSet", tableType),
+                    Type = new CodeTypeReference("IQueryable", tableType),
                 };
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 
-                field.Name += " { get; set; }";
+                field.Name += $" => GetTable<{tableType}>()";
 
                 cls.Members.Add(field);
             }
 
+            /*
             if (this.NetCoreMode)
             {
                 // OnModelCreating
@@ -1057,6 +906,7 @@ namespace DbMetal.Generator
 
                 cls.Members.Add(methodConf);
             }
+            */
 
             nameSpace.Types.Add(cls);
 
@@ -1804,15 +1654,16 @@ namespace DbMetal.Generator
                     new CodeAttributeArgument(new CodePrimitiveExpression(column.Name))
                 };
 
+                /*
                 if (!this.NetCoreMode && column.IsPrimaryKey && pkColumns.Count > 1)
                 {
                     var index = pkColumns.FindIndex(x => x == column);
                     columnAttrArgs.Add(new CodeAttributeArgument("Order", new CodePrimitiveExpression(index)));                    
                 }
-                else if (this.NetCoreMode && column.DbType == "jsonb")
+                else if (column.DbType == "jsonb")
                 {
                     columnAttrArgs.Add(new CodeAttributeArgument("TypeName", new CodePrimitiveExpression("jsonb")));
-                }
+                }*/
 
                 var field = new CodeMemberField(type, columnMember)
                 {
@@ -1825,9 +1676,9 @@ namespace DbMetal.Generator
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {columnMember} </summary>", true));
 
-                if (column.IsPrimaryKey && (!this.NetCoreMode || pkColumns.Count == 1))
+                if (column.IsPrimaryKey && pkColumns.Count == 1)
                 {
-                    field.CustomAttributes.Add(new CodeAttributeDeclaration("Key"));
+                    field.CustomAttributes.Add(new CodeAttributeDeclaration("PrimaryKey"));
                 }
 
                 field.Name += " { get; set; }";
@@ -1846,11 +1697,15 @@ namespace DbMetal.Generator
                         Attributes = MemberAttributes.Static | MemberAttributes.FamilyAndAssembly,
                         CustomAttributes =
                         {
-                            new CodeAttributeDeclaration("ForeignKey",
+                            new CodeAttributeDeclaration("Association",
                                 new CodeAttributeArgument(
                                     new CodeMethodInvokeExpression(null,
-                                        "nameof",
-                                         new CodeVariableReferenceExpression(relatedAssociation.ThisKey))))
+                                        "ThisKey = nameof",
+                                         new CodeVariableReferenceExpression(relatedAssociation.ThisKey))),
+                                new CodeAttributeArgument(
+                                    new CodeMethodInvokeExpression(null,
+                                        "OtherKey = nameof",
+                                        new CodeVariableReferenceExpression($"{relatedAssociation.Type}.{relatedAssociation.OtherKey}"))))
                         }
                     };
 
