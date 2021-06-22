@@ -142,6 +142,7 @@ abloom
 ablution
 ablutions
 ably
+abn
 abnegate
 abnegated
 abnegation
@@ -920,6 +921,7 @@ adman
 admanmass
 admeasure
 admeasurement
+admin
 administer
 administered
 administering
@@ -2958,6 +2960,7 @@ anytime
 anyway
 anywhere
 anywise
+anzsic
 aorta
 aortae
 aortic
@@ -3817,6 +3820,7 @@ Asiaticizations
 Asiaticize
 Asiaticizes
 Asiatics
+asic
 aside
 Asilomar
 Asimov
@@ -7395,6 +7399,7 @@ blusters
 blustery
 Blythe
 BM
+bn
 BNB
 BO
 boa
@@ -18628,6 +18633,7 @@ dirtily
 dirtiness
 dirts
 dirty
+dis
 disabilities
 disability
 disable
@@ -68057,6 +68063,7 @@ tranquillity
 tranquillize
 tranquillizer
 tranquilly
+trans
 trans-ship
 transact
 transacter
