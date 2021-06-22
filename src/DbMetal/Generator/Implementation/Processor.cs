@@ -359,7 +359,6 @@ namespace DbMetal.Generator.Implementation
             string text = File.ReadAllText(filePath);
 
             text = text.Replace("{ get; set; };", "{ get; set; }");
-            text = text.Replace("{ get; };", "{ get; }");
 
             if (replaceToVirtual)
             {

@@ -244,7 +244,6 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Mapping"));
 
             nameSpace.Types.Add(this.GenerateEfClass(table, database));
@@ -260,7 +259,6 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
@@ -273,7 +271,7 @@ namespace DbMetal.Generator
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB"));
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Data"));
 
-            var iface = new CodeTypeDeclaration($"I{this.ContextName}Context")
+            var iface = new CodeTypeDeclaration($"I{this.ContextName}DbContext")
             {
                 IsInterface = true,
                 IsPartial = true
@@ -298,7 +296,6 @@ namespace DbMetal.Generator
                 field.HasGet = true;
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
-                field.Name += " { get }";
 
                 iface.Members.Add(field);
             }
@@ -832,7 +829,7 @@ namespace DbMetal.Generator
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 
-                field.Name += $" => GetTable<{tableType}>()";
+                field.Name += $" => GetTable<{table.Type.Name}>()";
 
                 cls.Members.Add(field);
             }
@@ -1644,6 +1641,10 @@ namespace DbMetal.Generator
             var numericTypes = new List<System.Type>() { typeof(int), typeof(Int16), typeof(Int64), typeof(UInt16), typeof(uint), typeof(UInt64),
                                                            typeof(float), typeof(double), typeof(decimal), typeof(bool), typeof(List<string>) };
 
+            var entityFolderPrefix = !string.IsNullOrWhiteSpace(this.EntityFolder)
+                ? $"{this.EntityFolder}."
+                : string.Empty;
+
             foreach (Column column in table.Type.Columns)
             {
                 var type = ToCodeTypeReference(column);
@@ -1723,7 +1724,7 @@ namespace DbMetal.Generator
                                 new CodeAttributeArgument(
                                     new CodeMethodInvokeExpression(null,
                                         "OtherKey = nameof",
-                                        new CodeVariableReferenceExpression($"{relatedAssociation.Type}.{relatedAssociation.OtherKey}"))))
+                                        new CodeVariableReferenceExpression($"{entityFolderPrefix}{relatedAssociation.Type}.{relatedAssociation.OtherKey}"))))
                         }
                     };
 
