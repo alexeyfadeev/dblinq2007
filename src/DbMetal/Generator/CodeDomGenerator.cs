@@ -1692,7 +1692,25 @@ namespace DbMetal.Generator
 
                 if (relatedAssociation != null)
                 {
-                    var fieldRel = new CodeMemberField(relatedAssociation.Type, relatedAssociation.Member)
+                    string memberName = relatedAssociation.Member;
+
+                    if (!relatedAssociation.ThisKey.Contains(relatedAssociation.Type)
+                        && relatedAssociation.ThisKey.EndsWith("Id")
+                        && relatedAssociation.ThisKey.Length > 2
+                        && relatedAssociation.Member.StartsWith(relatedAssociation.Type))
+                    {
+                        memberName = $"{relatedAssociation.ThisKey.Substring(0, relatedAssociation.ThisKey.Length - 2)}{relatedAssociation.Type}";
+                    }
+                    else if (relatedAssociation.Member.StartsWith(relatedAssociation.Type)
+                        && relatedAssociation.ThisKey.Contains(relatedAssociation.Type)
+                        && (relatedAssociation.Member.EndsWith("1")
+                                || relatedAssociation.Member.EndsWith("2")
+                                || relatedAssociation.Member.EndsWith("3")))
+                    {
+                        memberName = relatedAssociation.Type;
+                    }
+
+                    var fieldRel = new CodeMemberField(relatedAssociation.Type, memberName)
                     {
                         Attributes = MemberAttributes.Static | MemberAttributes.FamilyAndAssembly,
                         CustomAttributes =
