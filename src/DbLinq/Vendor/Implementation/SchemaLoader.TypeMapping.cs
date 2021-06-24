@@ -97,6 +97,7 @@ namespace DbLinq.Vendor.Implementation
             case "nvarchar2":
             case "string":
             case "text":
+            case "name":
             case "varchar":
             case "varchar2":
             case "clob":    // oracle type

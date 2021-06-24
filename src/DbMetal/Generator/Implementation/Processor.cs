@@ -281,7 +281,7 @@ namespace DbMetal.Generator.Implementation
             // Generate IContext into separate file, if it's needed
             if (parameters.IContext)
             {
-                // IRepository
+                // IContext
                 string interfaceFileName = $"I{parameters.ContextName}DbContext.cs";
                 parameters.Write("<<< writing IRepository into file '{0}'", interfaceFileName);
 
@@ -291,6 +291,22 @@ namespace DbMetal.Generator.Implementation
                 }
 
                 this.ProcessFile(interfaceFileName);
+
+                // TestContext
+                string testFileName = $"{parameters.ContextName}TestDbContext.cs";
+
+                parameters.Write("<<< writing TestContext into file '{0}'", testFileName);
+
+                using (var streamWriterTestContext = new StreamWriter(testFileName))
+                {
+                    codeGenerator.WriteTestContext(
+                        streamWriterTestContext,
+                        dbSchema,
+                        generationContext,
+                        parameters.BulkExtensions);
+                }
+
+                this.ProcessFile(testFileName);
             }
         }
 
@@ -308,20 +324,34 @@ namespace DbMetal.Generator.Implementation
                     new NameFormat(parameters.Pluralize, GetCase(parameters), new CultureInfo(parameters.Culture)),
                     parameters.Sprocs, parameters.Namespace, parameters.Namespace, parameters.ContextName);
 
+                var neededTables = new List<Table>();
+
                 if (parameters.IncludeOnlyTables?.Any() == true)
                 {
-                    var neededTables = dbSchema.Tables
+                    neededTables = dbSchema.Tables
                         .Where(x => parameters.IncludeOnlyTables.Contains(x.Name))
                         .ToList();
-
-                    dbSchema.ReplaceTables(neededTables);
                 }
                 else if (parameters.IgnoreTables?.Any() == true)
                 {
-                    var neededTables = dbSchema.Tables
+                    neededTables = dbSchema.Tables
                         .Where(x => !parameters.IgnoreTables.Contains(x.Name))
                         .ToList();
+                }
+                if (parameters.IgnoreSchemes?.Any() == true)
+                {
+                    neededTables = neededTables.Any() ? neededTables : dbSchema.Tables.ToList();
 
+                    foreach (var scheme in parameters.IgnoreSchemes)
+                    {
+                        var prefix = $"{scheme}.";
+
+                        neededTables = neededTables.Where(x => !x.Name.StartsWith(prefix)).ToList();
+                    }
+                }
+
+                if (neededTables.Any())
+                {
                     dbSchema.ReplaceTables(neededTables);
                 }
 

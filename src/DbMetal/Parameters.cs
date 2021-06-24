@@ -214,6 +214,11 @@ namespace DbMetal
         /// </summary>
         public List<string> IncludeOnlyTables { get; set; }
 
+        /// <summary>
+        /// Schemes to ignore
+        /// </summary>
+        public List<string> IgnoreSchemes { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
