@@ -64,5 +64,8 @@ namespace DbLinq.Vendor
         /// Determines if the column value is generated when there is no value given in insert
         /// </summary>
         bool? Generated { get; set; }
+
+        /// <summary> Column comment </summary>
+        string Comment { get; set; }
     }
 }

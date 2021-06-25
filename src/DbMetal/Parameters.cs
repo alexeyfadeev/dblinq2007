@@ -66,9 +66,19 @@ namespace DbMetal
         public string Conn { get; set; }
 
         /// <summary>
-        /// the namespace to put our classes into
+        /// the namespace to put classes into
         /// </summary>
         public string Namespace { get; set; }
+
+        /// <summary>
+        /// the namespace to put test classes into
+        /// </summary>
+        public string TestNamespace { get; set; }
+
+        /// <summary>
+        /// the namespaces to put entity classes into
+        /// </summary>
+        public IList<string> AdditionalNamespaces { get; set; }
 
         /// <summary>
         /// the language to generate classes for
@@ -213,6 +223,11 @@ namespace DbMetal
         /// If this parameter specified, only these tables will be included
         /// </summary>
         public List<string> IncludeOnlyTables { get; set; }
+
+        /// <summary>
+        /// Schemes to ignore
+        /// </summary>
+        public List<string> IgnoreSchemes { get; set; }
 
         TextWriter log;
         public TextWriter Log

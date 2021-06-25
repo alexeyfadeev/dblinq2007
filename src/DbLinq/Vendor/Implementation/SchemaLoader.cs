@@ -457,6 +457,8 @@ namespace DbLinq.Vendor.Implementation
                 else
                     column.Type = columnType.ToString();
 
+                column.Comment = columnRow.Comment;
+
                 tableSchema.Type.Columns.Add(column);
             }
         }
