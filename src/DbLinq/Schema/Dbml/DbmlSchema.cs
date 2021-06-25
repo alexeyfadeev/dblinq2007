@@ -2077,6 +2077,8 @@ namespace DbLinq.Schema.Dbml
             }
         }
 
+        public string Comment { get; set; }
+
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 
         protected void RaisePropertyChanged(string propertyName)

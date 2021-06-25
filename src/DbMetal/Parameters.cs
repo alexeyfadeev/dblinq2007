@@ -66,9 +66,19 @@ namespace DbMetal
         public string Conn { get; set; }
 
         /// <summary>
-        /// the namespace to put our classes into
+        /// the namespace to put classes into
         /// </summary>
         public string Namespace { get; set; }
+
+        /// <summary>
+        /// the namespace to put test classes into
+        /// </summary>
+        public string TestNamespace { get; set; }
+
+        /// <summary>
+        /// the namespaces to put entity classes into
+        /// </summary>
+        public IList<string> AdditionalNamespaces { get; set; }
 
         /// <summary>
         /// the language to generate classes for

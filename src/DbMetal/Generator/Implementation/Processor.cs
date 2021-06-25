@@ -40,6 +40,7 @@ using Newtonsoft.Json;
 
 namespace DbMetal.Generator.Implementation
 {
+    using System.Text;
     using DbLinq.Schema.Dbml.Adapter;
 
 #if !MONO_STRICT
@@ -397,14 +398,29 @@ namespace DbMetal.Generator.Implementation
 
             text = text.Replace("class static", "static class");
 
+            text = text.Replace("System.DateTime", "DateTime");
+
+            var nullableTypes = new[] { "int", "bool", "long", "short", "uint", "ulong", "ushort", "DateTime" };
+
+            foreach (var nullableType in nullableTypes)
+            {
+                text = text.Replace($"System.Nullable<{nullableType}>", $"{nullableType}?");
+            }
+
             text = text.Replace(";\r\n\t\r\n\t", ";\r\n\t");
             text = text.Replace("{\r\n\t\t\r\n\t\t", "{\r\n\t\t");
             text = text.Replace(";\r\n\t\t\t\tif ", ";\r\n\t\t\t\t\r\n\t\t\t\tif ");
             text = text.Replace("}\r\n\t\t\t\tsb ", "}\r\n\t\t\t\t\r\n\t\t\t\tsb ");
             text = text.Replace("\r\n\t\t{\r\n\t\t\tget;\r\n\t\t}", " { get; }");
+
+            text = text.Replace("\r\n\t\r\n", "\r\n\r\n");
+            text = text.Replace("\r\n\t\t\r\n", "\r\n\r\n");
             text = text.Replace("\t", "    ");
 
-            File.WriteAllText(filePath, text);
+            using (var writer = new StreamWriter(filePath, false, new UTF8Encoding(true)))
+            {
+                writer.Write(text);
+            }
         }
 
         private void PrintUsage(Parameters parameters)
