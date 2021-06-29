@@ -294,6 +294,8 @@ namespace DbMetal.Generator
                 IsPartial = true
             };
 
+            iface.Comments.Add(new CodeCommentStatement("<summary> Interface for database context </summary>", true));
+
             iface.BaseTypes.Add(new CodeTypeReference("IDataContext"));
 
             // Tables
@@ -896,10 +898,6 @@ namespace DbMetal.Generator
                 ? $"{this.EntityFolder}."
                 : string.Empty;
 
-            if (tableName == "menu_item")
-            {
-            }
-
             foreach (Column column in table.Type.Columns)
             {
                 var type = ToCodeTypeReference(column, additionalNamespaces);
@@ -989,6 +987,8 @@ namespace DbMetal.Generator
                     };
 
                     fieldRel.Name += " { get; set; }";
+
+                    fieldRel.Comments.Add(new CodeCommentStatement($"<summary> Association for {columnMember} </summary>", true));
 
                     cls.Members.Add(fieldRel);
                 }
