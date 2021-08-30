@@ -811,6 +811,7 @@ addressers
 addresses
 addressing
 addressograph
+addr
 adds
 adduce
 adduced
@@ -4456,6 +4457,7 @@ autarchy
 autarkic
 autarkical
 autarky
+auth
 authentic
 authentically
 authenticate
@@ -6562,6 +6564,7 @@ bibliotheraphy
 bibliotist
 bibs
 bibulous
+bic
 bicameral
 bicameralism
 bicarb
@@ -9749,6 +9752,7 @@ canceler
 canceling
 cancellation
 cancellations
+cancelled
 canceller
 cancels
 cancer
