@@ -229,6 +229,11 @@ namespace DbMetal
         /// </summary>
         public List<string> IgnoreSchemes { get; set; }
 
+        /// <summary>
+        /// Use partial keyword for entity classes
+        /// </summary>
+        public bool PartialEntities { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {

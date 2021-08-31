@@ -856,7 +856,7 @@ namespace DbMetal.Generator
             var cls = new CodeTypeDeclaration()
                 {
                     IsClass = true,
-                    IsPartial = false,
+                    IsPartial = this.Context.Parameters.PartialEntities,
                     Name = table.Type.Name,
                     TypeAttributes = TypeAttributes.Public,
                     CustomAttributes =
