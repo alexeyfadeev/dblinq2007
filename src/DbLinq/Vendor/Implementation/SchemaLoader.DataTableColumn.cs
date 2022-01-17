@@ -66,6 +66,9 @@ namespace DbLinq.Vendor.Implementation
 
             /// <summary> Column comment </summary>
             public string Comment { get; set; }
+
+            /// <summary> Determines if the column is identity (auto-incremented Id) </summary>
+            public bool IsIdentity { get; set; }
         }
     }
 }

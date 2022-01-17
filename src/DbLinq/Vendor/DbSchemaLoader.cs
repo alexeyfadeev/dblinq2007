@@ -142,6 +142,7 @@ namespace DbLinq.Vendor
             var iTable    = dbColumns.Columns.IndexOf("TABLE_NAME");
             var iSchema   = dbColumns.Columns.IndexOf("TABLE_SCHEMA");
             var iSqlType  = dbColumns.Columns.IndexOf("DATA_TYPE");
+            var iIsIdentity = dbColumns.Columns.IndexOf("IS_IDENTITY");
 
             var iPK = dbColumns.Columns.IndexOf("PRIMARY_KEY");
             if (iPK < 0)
@@ -181,8 +182,9 @@ namespace DbLinq.Vendor
                     SqlType         = sqlType,
                     TableName       = tableName,
                     TableSchema     = tableSchema,
+                    IsIdentity      = GetValue<int>(c, iIsIdentity, 0) == 1
                 };
-                FillDataTableColumnInformation(c, v);
+                
                 columns.Add(v);
             }
             return columns;
@@ -191,13 +193,6 @@ namespace DbLinq.Vendor
         protected virtual DataTable GetColumns(DbConnection connection)
         {
             return connection.GetSchema("Columns");
-        }
-
-        protected virtual void FillDataTableColumnInformation(DataRow row, DataTableColumn column)
-        {
-            if (column.PrimaryKey.HasValue && column.PrimaryKey.Value &&
-                    (column.ManagedType == "System.Int32" || column.ManagedType == "System.Int64"))
-                column.Generated = true;
         }
 
         private static bool GetValue(DataRow r, int index, bool defaultValue)

@@ -426,6 +426,8 @@ namespace DbLinq.Vendor.Implementation
                 if (generated.HasValue)
                     column.IsDbGenerated = generated.Value;
 
+                column.IsIdentity = columnRow.IsIdentity;
+
                 AutoSync? autoSync = (nameAliases != null) ? nameAliases.GetColumnAutoSync(columnRow.ColumnName, columnRow.TableName, columnRow.TableSchema) : null;
                 if (autoSync.HasValue)
                     column.AutoSync = autoSync.Value;

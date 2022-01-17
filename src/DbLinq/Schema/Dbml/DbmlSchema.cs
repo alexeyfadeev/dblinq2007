@@ -1629,6 +1629,8 @@ namespace DbLinq.Schema.Dbml
 
         private bool isDbGeneratedField;
 
+        private bool isIdentity;
+
         private bool isDbGeneratedFieldSpecified;
 
         private bool canBeNullField;
@@ -1864,6 +1866,21 @@ namespace DbLinq.Schema.Dbml
             {
                 this.isDbGeneratedField = value;
                 this.RaisePropertyChanged("IsDbGenerated");
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public bool IsIdentity
+        {
+            get
+            {
+                return this.isIdentity;
+            }
+            set
+            {
+                this.isIdentity = value;
+                this.RaisePropertyChanged("IsIdentity");
             }
         }
 

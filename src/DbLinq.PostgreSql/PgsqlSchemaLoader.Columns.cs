@@ -30,6 +30,8 @@ using DbLinq.Vendor;
 
 namespace DbLinq.PostgreSql
 {
+    using System.Linq;
+
     partial class PgsqlSchemaLoader
     {
         protected virtual string GetColumnFullType(string domain_name, string domain_schema, IDataTableColumn column)
@@ -111,7 +113,13 @@ FROM information i
     WHERE ARRAY[table_name::text, column_name::text] NOT IN 
     (SELECT ARRAY[table_name::text, column_name::text] FROM description)";
 
-            return DataCommand.Find<IDataTableColumn>(connectionString, sql, ":db", databaseName, ReadColumn);
+            var ret = DataCommand.Find<IDataTableColumn>(connectionString, sql, ":db", databaseName, ReadColumn);
+            foreach (var column in ret.Where(x => x.DefaultValue?.StartsWith("nextval") == true))
+            {
+                column.IsIdentity = true;
+            }
+
+            return ret;
         }
     }
 }

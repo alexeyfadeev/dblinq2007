@@ -933,11 +933,11 @@ namespace DbMetal.Generator
                 if (column.IsPrimaryKey && pkColumns.Count == 1)
                 {
                     field.CustomAttributes.Add(new CodeAttributeDeclaration("PrimaryKey"));
-                }
 
-                if (column.IsDbGenerated)
-                {
-                    field.CustomAttributes.Add(new CodeAttributeDeclaration("Identity"));
+                    if (column.IsIdentity)
+                    {
+                        field.CustomAttributes.Add(new CodeAttributeDeclaration("Identity"));
+                    }
                 }
 
                 field.Name += " { get; set; }";
@@ -953,12 +953,15 @@ namespace DbMetal.Generator
                 {
                     string memberName = relatedAssociation.Member;
 
-                    if (!relatedAssociation.ThisKey.Contains(relatedAssociation.Type)
-                        && relatedAssociation.ThisKey.EndsWith("Id")
-                        && relatedAssociation.ThisKey.Length > 2
-                        && relatedAssociation.Member.StartsWith(relatedAssociation.Type))
+                    if (relatedAssociation.ThisKey.EndsWith("Id")
+                        && relatedAssociation.ThisKey.Length > 2)
                     {
-                        memberName = $"{relatedAssociation.ThisKey.Substring(0, relatedAssociation.ThisKey.Length - 2)}{relatedAssociation.Type}";
+                        memberName = $"{relatedAssociation.ThisKey.Substring(0, relatedAssociation.ThisKey.Length - 2)}";
+
+                        if (!memberName.Contains(relatedAssociation.Type))
+                        {
+                            memberName += relatedAssociation.Type;
+                        }
                     }
                     else if (relatedAssociation.Member.StartsWith(relatedAssociation.Type)
                         && relatedAssociation.ThisKey.Contains(relatedAssociation.Type)
