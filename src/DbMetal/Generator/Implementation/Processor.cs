@@ -330,13 +330,15 @@ namespace DbMetal.Generator.Implementation
                 if (parameters.IncludeOnlyTables?.Any() == true)
                 {
                     neededTables = dbSchema.Tables
-                        .Where(x => parameters.IncludeOnlyTables.Contains(x.Name))
+                        .Where(x => parameters.IncludeOnlyTables.Contains(x.Name)
+                            || parameters.IncludeOnlyTables.Contains(x.Member))
                         .ToList();
                 }
                 else if (parameters.IgnoreTables?.Any() == true)
                 {
                     neededTables = dbSchema.Tables
-                        .Where(x => !parameters.IgnoreTables.Contains(x.Name))
+                        .Where(x => !parameters.IgnoreTables.Contains(x.Name)
+                            && !parameters.IgnoreTables.Contains(x.Member))
                         .ToList();
                 }
                 if (parameters.IgnoreSchemes?.Any() == true)
