@@ -54,6 +54,8 @@ namespace DbMetal.Generator
 #endif
     class CodeDomGenerator : ICodeGenerator
     {
+        private const string Jsonb = "jsonb";
+
         CodeDomProvider Provider { get; set; }
         ILanguageWords LanguageWords { get; set; }
         NameFormatter NameFormatter { get; set; }
@@ -248,6 +250,11 @@ namespace DbMetal.Generator
             if (table.Type.Columns.Any(x => x.Type == "System.DateTime"))
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport("System"));
+            }
+
+            if (table.Type.Columns.Any(x => x.DbType == Jsonb))
+            {
+                nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB"));
             }
 
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Mapping"));
@@ -908,17 +915,6 @@ namespace DbMetal.Generator
                     new CodeAttributeArgument(new CodePrimitiveExpression(column.Name))
                 };
 
-                /*
-                if (!this.NetCoreMode && column.IsPrimaryKey && pkColumns.Count > 1)
-                {
-                    var index = pkColumns.FindIndex(x => x == column);
-                    columnAttrArgs.Add(new CodeAttributeArgument("Order", new CodePrimitiveExpression(index)));                    
-                }
-                else if (column.DbType == "jsonb")
-                {
-                    columnAttrArgs.Add(new CodeAttributeArgument("TypeName", new CodePrimitiveExpression("jsonb")));
-                }*/
-
                 var field = new CodeMemberField(type, columnMember)
                 {
                     Attributes = MemberAttributes.Public | MemberAttributes.Final,
@@ -927,6 +923,11 @@ namespace DbMetal.Generator
                         new CodeAttributeDeclaration("Column", columnAttrArgs.ToArray())
                     }
                 };
+
+                if (column.DbType == Jsonb)
+                {
+                    field.CustomAttributes[0].Arguments.Add(new CodeAttributeArgument("DataType", new CodeSnippetExpression("DataType.BinaryJson")));
+                }
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {columnMember} </summary>", true));
 
