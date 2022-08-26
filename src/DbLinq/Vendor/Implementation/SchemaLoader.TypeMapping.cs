@@ -32,6 +32,8 @@ using System.Text.RegularExpressions;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using NpgsqlTypes;
+
     partial class SchemaLoader
     {
         /// <summary>
@@ -289,6 +291,9 @@ namespace DbLinq.Vendor.Implementation
 
             case "tsvector":
                 return typeof(List<string>);
+
+            case "point":
+                return typeof(NpgsqlPoint);
 
             // if we fall to this case, we must handle the type
             default:
