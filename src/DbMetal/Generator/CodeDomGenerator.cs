@@ -283,8 +283,6 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
 
             if (!string.IsNullOrWhiteSpace(this.EntityFolder))
@@ -376,13 +374,12 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
-            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
-
             if (!string.IsNullOrWhiteSpace(this.EntityFolder))
             {
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
+            nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB"));
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Data"));
 
             var cls = new CodeTypeDeclaration(this.ContextName + "DbContext")
@@ -445,7 +442,7 @@ namespace DbMetal.Generator
 
                 field.Comments.Add(new CodeCommentStatement($"<summary> {name} </summary>", true));
 
-                field.Name += $" => GetTable<{table.Type.Name}>()";
+                field.Name += $" => this.GetTable<{table.Type.Name}>()";
 
                 cls.Members.Add(field);
             }
