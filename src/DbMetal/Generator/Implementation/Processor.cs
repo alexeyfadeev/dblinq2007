@@ -96,6 +96,11 @@ namespace DbMetal.Generator.Implementation
                 return;
             }
 
+            if (args.Any(a => a.Equals("-debug", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                parameters.Debug = true;
+            }
+
             ProcessSchema(parameters);
 
             if (parameters.Readline)
@@ -341,7 +346,26 @@ namespace DbMetal.Generator.Implementation
                             && !parameters.IgnoreTables.Contains(x.Member))
                         .ToList();
                 }
-                if (parameters.IgnoreSchemes?.Any() == true)
+
+                if (parameters.IncludeOnlySchemes?.Any() == true)
+                {
+                    neededTables = neededTables.Any() ? neededTables : dbSchema.Tables.ToList();
+
+                    var prefixes = parameters.IncludeOnlySchemes.Select(s => $"{s}.").ToList();
+                    neededTables = neededTables.Where(x =>
+                    {
+                        foreach (var prefix in prefixes)
+                        {
+                            if (x.Name.StartsWith(prefix))
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }).ToList();
+                }
+                else if (parameters.IgnoreSchemes?.Any() == true)
                 {
                     neededTables = neededTables.Any() ? neededTables : dbSchema.Tables.ToList();
 

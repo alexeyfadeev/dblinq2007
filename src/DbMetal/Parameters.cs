@@ -228,6 +228,11 @@ namespace DbMetal
         /// Schemes to ignore
         /// </summary>
         public List<string> IgnoreSchemes { get; set; }
+        
+        /// <summary>
+        /// If this parameter specified, only these schemas will be included
+        /// </summary>
+        public List<string> IncludeOnlySchemes { get; set; }
 
         /// <summary>
         /// Use partial keyword for entity classes
