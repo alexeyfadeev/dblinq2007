@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System;
 using System.Collections.ObjectModel;
 using System.Data.Linq.Mapping;
 using System.Reflection;
 
 namespace DbLinq.Data.Linq.Mapping
 {
+    using System;
+
     internal class AttributedMetaFunction : MetaFunction
     {
         public AttributedMetaFunction(MethodInfo method, FunctionAttribute attribute)

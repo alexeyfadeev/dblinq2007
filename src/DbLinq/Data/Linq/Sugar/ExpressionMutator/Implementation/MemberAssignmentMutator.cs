@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation
 {
+    using System.Collections.Generic;
+
     internal class MemberAssignmentMutator : IMemberBindingMutator
     {
         protected MemberAssignment MemberAssignment { get; private set; }

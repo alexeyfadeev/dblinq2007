@@ -323,7 +323,7 @@ namespace DbMetal
         /// <param name="args"></param>
         public void Write(string format, params object[] args)
         {
-            Output.WriteLine(Log, OutputLevel.Information, format, args);
+            Console.WriteLine(format, args);
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace DbMetal
         /// </summary>
         public void WriteLine()
         {
-            Output.WriteLine(Log, OutputLevel.Information, string.Empty);
+            Console.WriteLine();
         }
 
         /// <summary>

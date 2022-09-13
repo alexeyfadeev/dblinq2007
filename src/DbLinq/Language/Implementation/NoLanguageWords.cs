@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Globalization;
 
 namespace DbLinq.Language.Implementation
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// LanguagesWord implementation for no language
     /// </summary>

@@ -24,12 +24,13 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Data;
 
 namespace DbLinq.Util
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Executes a given SQL command, with parameter and delegate
     /// </summary>

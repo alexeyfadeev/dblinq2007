@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using DbLinq.Data.Linq.Identity;
-
 namespace DbLinq.Data.Linq.Identity.Implementation
 {
     /// <summary>

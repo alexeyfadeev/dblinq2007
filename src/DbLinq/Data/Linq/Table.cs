@@ -24,24 +24,16 @@
 // 
 #endregion
 
-using System;
-using System.Data;
 using System.Data.Linq;
-using System.Reflection;
-using System.Diagnostics;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.ComponentModel;
 
 #if MONO_STRICT
 using ITable = System.Data.Linq.ITable;
 #else
-using ITable = DbLinq.Data.Linq.ITable;
 #endif
 
-using DbLinq;
 using DbLinq.Data.Linq.Implementation;
 using DbLinq.Data.Linq.Sugar;
 
@@ -51,6 +43,10 @@ namespace System.Data.Linq
 namespace DbLinq.Data.Linq
 #endif
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// T may be eg. class Employee or string - the output
     /// </summary>

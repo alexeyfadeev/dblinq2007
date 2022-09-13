@@ -25,11 +25,12 @@
 #endregion
 
 using System.Collections;
-using System.Linq;
 using DbLinq.Util;
 
 namespace DbLinq.Schema.Dbml.Adapter
 {
+    using System.Linq;
+
     /// <summary>
     /// Wraps a CSV string to an array
     /// </summary>

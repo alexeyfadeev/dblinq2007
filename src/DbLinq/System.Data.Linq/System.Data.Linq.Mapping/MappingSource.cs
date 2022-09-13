@@ -27,15 +27,11 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace System.Data.Linq.Mapping
 {
+	using Collections.Generic;
+
 	public abstract class MappingSource
 	{
 		Dictionary<Type, MetaModel> sources = new Dictionary<Type, MetaModel> ();

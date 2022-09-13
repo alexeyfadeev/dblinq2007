@@ -23,11 +23,8 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.Data;
-using System.IO;
-using System.Linq;
 
 #if MONO_STRICT
 using System.Data.Linq;
@@ -42,6 +39,11 @@ using System.Text.RegularExpressions;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+
 #if !MONO_STRICT
     public
 #endif

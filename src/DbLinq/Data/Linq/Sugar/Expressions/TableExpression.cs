@@ -24,14 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-using DbLinq.Data.Linq.Sugar.Expressions;
-
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+
     /// <summary>
     /// A table is a default table, or a joined table
     /// Different joins specify different tables

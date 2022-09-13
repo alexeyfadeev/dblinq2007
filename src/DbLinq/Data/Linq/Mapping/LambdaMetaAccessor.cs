@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 using System.Data.Linq.Mapping;
 using System.Reflection.Emit;
 
 namespace DbLinq.Data.Linq.Mapping
 {
+	using System;
+
 	static class LambdaMetaAccessor
 	{
 		//This will go away with C# 4.0 ActionExpression

@@ -25,11 +25,12 @@
 #endregion
 
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace DbLinq.Data.Linq.Sugar.Implementation
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     internal class LineGrouping<K, T> : IGrouping<K, T>
     {
         protected T Line { get; private set; }

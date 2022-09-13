@@ -23,11 +23,11 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
-
 
 namespace DbLinq.Factory
 {
+    using System;
+
     /// <summary>
     /// This class is used by ReflectionObjectFactory to determine if the interfaces come from a DbLinq assembly
     /// </summary>

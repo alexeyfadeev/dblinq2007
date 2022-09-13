@@ -24,11 +24,11 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-
 namespace DbLinq.Data.Linq.Identity
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Identifies an object in a unique way (think Primay Keys in a database table)
     /// Identity is:

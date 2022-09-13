@@ -22,15 +22,17 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace DbLinq.Linq.Data.Sugar.Expressions
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using DbLinq.Data.Linq.Sugar;
+    using DbLinq.Data.Linq.Sugar.Expressions;
+
     /// <summary>
     /// Represents a GROUP BY
     /// </summary>

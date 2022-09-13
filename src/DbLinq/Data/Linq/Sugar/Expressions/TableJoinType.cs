@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System;
-
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+
     [Flags]
 #if !MONO_STRICT
     public

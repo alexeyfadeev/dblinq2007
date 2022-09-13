@@ -24,14 +24,12 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using DbLinq.Data.Linq.Identity;
 
 namespace DbLinq.Data.Linq.Implementation
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Interface of Entity Trackers
     /// </summary>

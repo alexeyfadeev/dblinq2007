@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq.Expressions;
-
-namespace DbLinq.Data.Linq.Sugar.Expressions
+﻿namespace DbLinq.Data.Linq.Sugar.Expressions
 {
     /// <summary>
     ///  Permits translation of expressions for specific database vendors

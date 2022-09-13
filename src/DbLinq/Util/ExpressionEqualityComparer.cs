@@ -24,13 +24,12 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using DbLinq.Data.Linq.Implementation;
 
 namespace DbLinq.Util
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// IEqualityComparer implementation for Expression
     /// </summary>

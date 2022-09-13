@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
+    using System;
+
     /// <summary>
     /// Types conversion.
     /// A "smart" extension to System.Convert (at least that's what we hope)

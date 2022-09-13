@@ -25,12 +25,13 @@
 #endregion
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace DbLinq.Data.Linq.Sql
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// An SqlStatement is a literal SQL request, composed of different parts (SqlPart)
     /// each part being either a parameter or a literal string

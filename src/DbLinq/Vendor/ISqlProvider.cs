@@ -24,7 +24,6 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using DbLinq.Data.Linq.Sql;
@@ -32,6 +31,8 @@ using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Vendor
 {
+    using System.Collections.Generic;
+
 #if !MONO_STRICT
     public
 #endif

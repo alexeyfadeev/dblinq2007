@@ -24,20 +24,15 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Data.Linq.Mapping;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
-using DbLinq.Data.Linq.Mapping;
 using DbLinq.Util;
 
 //Change notes:
@@ -46,7 +41,11 @@ using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Mapping
 {
-    /// <summary>
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+
+	/// <summary>
     /// This class is a stateless attribute meta model (it does not depend on any provider)
     /// So the MappingSource can use singletons
     /// </summary>

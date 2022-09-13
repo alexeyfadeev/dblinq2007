@@ -23,17 +23,17 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
-using System.Collections.Generic;
-
 
 namespace DbLinq.Util
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// The name sucks, but it is to avoid confusion with System.Collections.Generic.Comparer
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class LambdaComparer<T> : IComparer<T>
+    public class LambdaComparer<T> : IComparer<T>
     {
         private readonly Func<T, T, int> comparer;
 

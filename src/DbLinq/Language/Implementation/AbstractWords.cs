@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 
 namespace DbLinq.Language.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     /// <summary>
     /// Offer base mechanisms for words based languages (== all)
     /// </summary>

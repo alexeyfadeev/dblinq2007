@@ -24,15 +24,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Data.Linq.Mapping;
-using System.Reflection;
 using DbLinq.Util;
 using DbLinq.Vendor;
 
 namespace DbLinq.Data.Linq.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
 #if !MONO_STRICT
     public
 #endif

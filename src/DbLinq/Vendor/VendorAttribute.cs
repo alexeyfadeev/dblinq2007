@@ -24,23 +24,16 @@
 // 
 #endregion
 
-using System;
-using System.Data;
-using System.Reflection;
-using System.Collections.Generic;
-
 #if MONO_STRICT
 using DataContext = System.Data.Linq.DataContext;
 #else
-using DataContext = DbLinq.Data.Linq.DataContext;
 #endif
-
-using Data = DbLinq.Data;
-using DbLinq.Data.Linq;
-using IExecuteResult = System.Data.Linq.IExecuteResult;
 
 namespace DbLinq.Vendor
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// This attribute is used by vendors
     /// </summary>

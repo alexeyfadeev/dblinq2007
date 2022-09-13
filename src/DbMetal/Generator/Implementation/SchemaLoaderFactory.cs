@@ -112,10 +112,10 @@ namespace DbMetal.Generator.Implementation
             {
                 //see Pascal's comment on this failure:
                 //http://groups.google.com/group/dblinq/browse_thread/thread/b7a29138435b0678
-                Output.WriteErrorLine(Log, "LoaderFactory.Load(schemaType=" + dbLinqSchemaLoaderType.Name + ", dbConnType=" + databaseConnectionType.Name + ")");
+                Console.WriteLine("LoaderFactory.Load(schemaType=" + dbLinqSchemaLoaderType.Name + ", dbConnType=" + databaseConnectionType.Name + ")");
                 if (errorMsg != "")
-                    Output.WriteErrorLine(Log, errorMsg);
-                Output.WriteErrorLine(Log, "LoaderFactory.Load() failed: " + ex.Message);
+                    Console.WriteLine(errorMsg);
+                Console.WriteLine("LoaderFactory.Load() failed: " + ex.Message);
                 throw;
             }
         }

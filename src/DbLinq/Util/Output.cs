@@ -24,11 +24,11 @@
 // 
 #endregion
 
-using System;
-using System.IO;
-
 namespace DbLinq.Util
 {
+    using System;
+    using System.IO;
+
     internal static class Output
     {
         /// <summary>

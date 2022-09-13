@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
+    using System;
+
     /// <summary>
     /// Extensions to handle FieldInfo and PropertyInfo as a single class, their MemberInfo class
     /// </summary>

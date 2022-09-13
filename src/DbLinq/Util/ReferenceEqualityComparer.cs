@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
+    using System.Collections.Generic;
+
     internal class ReferenceEqualityComparer<T> : IEqualityComparer<T>
     {
         private MethodInfo objectGetHashCode;

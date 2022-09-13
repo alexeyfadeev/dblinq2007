@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+    using System.Collections.Generic;
+
 #if !MONO_STRICT
     public
 #endif

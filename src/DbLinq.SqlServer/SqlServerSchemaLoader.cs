@@ -40,7 +40,7 @@ namespace DbLinq.SqlServer
     {
         readonly IVendor vendor = new SqlServerVendor();
         public override IVendor Vendor {
-            get {return vendor;}
+            get => vendor;
             set {}
         }
 

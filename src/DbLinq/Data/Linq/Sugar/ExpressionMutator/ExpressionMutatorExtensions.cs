@@ -24,15 +24,15 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using DbLinq.Data.Linq.Sugar.ExpressionMutator;
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Extensions to Expression, to enumerate and dynamically change operands in a uniformized way
     /// </summary>

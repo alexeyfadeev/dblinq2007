@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using System;
-
 namespace System.Data.Linq
 {
     public interface IExecuteResult : IDisposable

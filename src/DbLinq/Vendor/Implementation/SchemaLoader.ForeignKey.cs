@@ -25,14 +25,15 @@
 #endregion
 
 using System.Data;
-using System.Linq;
 using DbLinq.Schema;
 using DbLinq.Schema.Dbml;
 using System.Text;
-using System.Collections.Generic;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     partial class SchemaLoader
     {
         /// <summary>

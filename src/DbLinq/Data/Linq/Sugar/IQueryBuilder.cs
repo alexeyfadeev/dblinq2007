@@ -24,12 +24,13 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+    using System.Collections.Generic;
+
     internal interface IQueryBuilder
     {
         /// <summary>

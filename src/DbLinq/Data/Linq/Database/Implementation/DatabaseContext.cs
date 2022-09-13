@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System;
 using System.Data;
 using System.Data.Common;
 using System.Reflection;
 
 namespace DbLinq.Data.Linq.Database.Implementation
 {
+    using System;
+
     /// <summary>
     /// Default database context implementation
     /// </summary>

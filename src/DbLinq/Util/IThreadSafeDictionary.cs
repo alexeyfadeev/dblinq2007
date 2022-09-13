@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace DbLinq.Util
+﻿namespace DbLinq.Util
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Thread safe dictionary (Brian Rudolph's code)
     /// </summary>

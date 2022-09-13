@@ -23,11 +23,13 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System.Collections.Generic;
+
 using System.Data;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using System.Collections.Generic;
+
     partial class SchemaLoader
     {
         protected abstract IList<IDataTableColumn> ReadColumns(IDbConnection connectionString, string databaseName);

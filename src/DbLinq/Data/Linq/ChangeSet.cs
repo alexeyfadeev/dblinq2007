@@ -24,14 +24,14 @@
 // 
 #endregion
 
-using System.Collections.Generic;
-
 #if MONO_STRICT
 namespace System.Data.Linq
 #else
 namespace DbLinq.Data.Linq
 #endif
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Contains list of datacontext entities to be deleted, inserted and updated.
     /// Merges table separate lists into single one.

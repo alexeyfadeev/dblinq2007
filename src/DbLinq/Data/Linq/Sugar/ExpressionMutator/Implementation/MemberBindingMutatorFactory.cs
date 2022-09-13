@@ -26,9 +26,6 @@
 
 using System.Linq.Expressions;
 
-using DbLinq.Data.Linq.Sugar;
-using DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation;
-
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation
 {
     internal static class MemberBindingMutatorFactory

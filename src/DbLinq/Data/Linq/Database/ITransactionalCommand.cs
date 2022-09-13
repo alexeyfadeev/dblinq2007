@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Data;
 
 namespace DbLinq.Data.Linq.Database
 {
+    using System;
+
     /// <summary>
     /// Transaction-aware command
     /// </summary>

@@ -24,15 +24,16 @@
 // 
 #endregion
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using DbLinq.Util;
 
 namespace DbLinq.Schema.Dbml.Adapter
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// ArrayAdapter wraps an IEnumerable as an IList, where items can be dynamically changed.
     /// This is very slow, and should be used with caution.

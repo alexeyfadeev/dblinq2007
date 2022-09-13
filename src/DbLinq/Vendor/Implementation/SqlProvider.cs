@@ -24,10 +24,7 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
@@ -38,6 +35,9 @@ using DbLinq.Util;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
 #if !MONO_STRICT
     public
 #endif

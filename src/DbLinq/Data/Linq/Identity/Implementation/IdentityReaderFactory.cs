@@ -24,18 +24,15 @@
 // 
 #endregion
 
-using System;
-using DbLinq.Data.Linq.Identity;
-using DbLinq.Data.Linq.Identity.Implementation;
-
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Identity.Implementation
 {
+    using System;
+
     /// <summary>
     /// IIdentityReaderFactory default implementation
     /// </summary>

@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
+    using System;
+
     internal static class ReflectionExtensions
     {
         private static A GetSingleAttribute<A>(object[] attributes)

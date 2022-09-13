@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System;
-
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+
     /// <summary>
     /// Shortcuts to generate exceptions (with formatted strings)
     /// This is for internal use only

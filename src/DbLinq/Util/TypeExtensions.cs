@@ -24,14 +24,15 @@
 // 
 #endregion
 
-using System;
-using System.Linq;
 using System.Data.Linq.Mapping;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
-    internal static class TypeExtensions
+    using System;
+    using System.Linq;
+
+    public static class TypeExtensions
     {
         /// <summary>
         /// Determines if a given type can have a null value

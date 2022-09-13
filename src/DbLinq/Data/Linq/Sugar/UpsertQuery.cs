@@ -24,19 +24,18 @@
 // 
 #endregion
 
-using System.Collections.Generic;
-
 using DbLinq.Data.Linq.Sql;
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System.Collections.Generic;
+
     internal class UpsertQuery : ParameterizedQuery
     {
         /// <summary>

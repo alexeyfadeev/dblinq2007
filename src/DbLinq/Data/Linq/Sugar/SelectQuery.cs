@@ -24,15 +24,12 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Data;
 using DbLinq.Data.Linq.Database;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 using DbLinq.Data.Linq.Mapping;
@@ -41,6 +38,9 @@ using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Represents a linq query, parsed and compiled, to be sent to database
     /// This instance is immutable, since it can be stored in a cache

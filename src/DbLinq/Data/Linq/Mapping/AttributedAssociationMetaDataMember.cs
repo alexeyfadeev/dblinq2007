@@ -24,13 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Data.Linq.Mapping;
 using System.Reflection;
-using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Mapping
 {
+    using System;
+
     internal class AttributedAssociationMetaDataMember : AttributedAbstractMetaDataMember
     {
         public AttributedAssociationMetaDataMember(MemberInfo member, AssociationAttribute attribute, MetaType declaringType)

@@ -24,12 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
-    internal static class TypeLoader
+    using System;
+
+    public static class TypeLoader
     {
         public static Type Load(string name)
         {

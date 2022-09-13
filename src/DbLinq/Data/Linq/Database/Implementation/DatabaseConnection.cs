@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Data;
 
 namespace DbLinq.Data.Linq.Database.Implementation
 {
+    using System;
+
     /// <summary>
     /// Database connection allows to open a connection if none available
     /// </summary>

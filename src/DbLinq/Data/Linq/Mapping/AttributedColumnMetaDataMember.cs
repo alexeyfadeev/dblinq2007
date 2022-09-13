@@ -27,7 +27,6 @@
 using System.Data.Linq.Mapping;
 using System.Diagnostics;
 using System.Reflection;
-using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Mapping
 {

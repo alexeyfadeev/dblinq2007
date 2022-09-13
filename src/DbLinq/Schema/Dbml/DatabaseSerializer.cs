@@ -1,15 +1,13 @@
 // It is automatically generated
-using System;
+
 using System.Xml;
-using System.Xml.Schema;
 using System.Xml.Serialization;
-using System.Text;
-using System.Collections;
-using System.Globalization;
 
 namespace DbLinq.Schema.Dbml
 {
-	#if !MONO_STRICT
+	using System;
+
+#if !MONO_STRICT
 	public
 	#endif
 	class GeneratedReader : XmlSerializationReader

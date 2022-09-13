@@ -45,8 +45,8 @@ namespace DbLinq.SqlServer
             return new SqlServerExpressionTranslator();
         }
 
-        protected override char SafeNameStartQuote { get { return '['; } }
-        protected override char SafeNameEndQuote { get { return ']'; } }
+        protected override char SafeNameStartQuote => '[';
+        protected override char SafeNameEndQuote => ']';
 
         /// <summary>
         /// Returns a table alias

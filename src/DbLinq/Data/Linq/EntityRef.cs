@@ -4,7 +4,7 @@
 //
 // Author:
 //   Atsushi Enomoto  <atsushi@ximian.com>
-//   Pablo Íñigo Blasco <pibgeus@gmail.com>
+//   Pablo ï¿½ï¿½igo Blasco <pibgeus@gmail.com>
 //
 // Copyright (C) 2008 Novell, Inc.
 //
@@ -31,16 +31,15 @@
 //
 #endregion
 
-using System;
-using System.Collections.Generic;
-using DbLinq;
-
 #if MONO_STRICT
 namespace System.Data.Linq
 #else
 namespace DbLinq.Data.Linq
 #endif
 {
+    using System;
+    using System.Collections.Generic;
+
     public struct EntityRef<TEntity> where TEntity : class
     {
         private TEntity entity;

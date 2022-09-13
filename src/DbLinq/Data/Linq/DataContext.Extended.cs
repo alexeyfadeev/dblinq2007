@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using System;
-using System.Diagnostics;
 using DbLinq.Data.Linq.Database;
 using DbLinq.Data.Linq.Mapping;
 using System.Data.Linq.Mapping;
@@ -37,6 +35,8 @@ using DbLinq.Util;
 
 namespace DbLinq.Data.Linq
 {
+    using System;
+
     partial class DataContext
     {
         public virtual MappingContext MappingContext { get { return _MappingContext; } set { _MappingContext = value; } }

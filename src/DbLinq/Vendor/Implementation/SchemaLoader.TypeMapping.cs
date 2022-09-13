@@ -24,14 +24,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using System;
+    using System.Collections.Generic;
     using NpgsqlTypes;
 
     partial class SchemaLoader

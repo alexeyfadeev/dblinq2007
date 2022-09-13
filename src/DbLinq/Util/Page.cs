@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System.Collections.Generic;
-
 namespace DbLinq.Util
 {
+    using System.Collections.Generic;
+
 #if !MONO_STRICT
     public
 #endif

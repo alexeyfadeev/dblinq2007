@@ -12,3 +12,4 @@ build.dbg.mono/
 output/
 packages/
 .vs/
+.idea/

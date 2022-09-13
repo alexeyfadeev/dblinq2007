@@ -24,14 +24,9 @@
 // 
 #endregion
 
-using System;
 using System.Data;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
-
-using DbLinq.Data.Linq.Database;
-using DbLinq.Data.Linq.Sql;
 using DbLinq.Data.Linq.Sugar.Expressions;
 using DbLinq.Util;
 
@@ -41,6 +36,9 @@ using System.Data.Linq;
 
 namespace DbLinq.Data.Linq.Sugar.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     internal class QueryRunner : IQueryRunner
     {
         /// <summary>

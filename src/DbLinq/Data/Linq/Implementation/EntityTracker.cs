@@ -24,14 +24,13 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using DbLinq.Data.Linq.Identity;
 
 namespace DbLinq.Data.Linq.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// List of entities, with their corresponding state (to insert, to watch, to delete)
     /// </summary>

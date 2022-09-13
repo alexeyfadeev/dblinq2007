@@ -23,11 +23,12 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
-using System.Collections.Generic;
 
 namespace DbLinq.Factory
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// The object factory is the start point for DbLinq main factory.
     /// See ObjectFactory.Current for details

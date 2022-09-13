@@ -24,17 +24,18 @@
 // 
 #endregion
 
-using System;
 using System.Collections.ObjectModel;
 using System.Data.Linq.Mapping;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using DbLinq.Util;
-using System.Collections.Generic;
 
 namespace DbLinq.Data.Linq.Mapping
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     [DebuggerDisplay("MetaType for {Name}")]
     internal class AttributedMetaType : MetaType
     {

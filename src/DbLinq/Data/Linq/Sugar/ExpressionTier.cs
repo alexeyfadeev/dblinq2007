@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System;
-
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+
     [Flags]
     internal enum ExpressionTier
     {

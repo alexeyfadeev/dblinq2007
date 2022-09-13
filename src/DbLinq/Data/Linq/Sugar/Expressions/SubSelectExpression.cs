@@ -24,14 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Diagnostics;
-using System.Linq.Expressions;
-
-using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+
     /// <summary>
     /// A table expression produced by a sub select, which work almost like any other table
     /// Different joins specify different tables

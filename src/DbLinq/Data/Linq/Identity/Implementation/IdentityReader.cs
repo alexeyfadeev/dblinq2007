@@ -24,20 +24,19 @@
 // 
 #endregion
 
-using System;
 using System.Reflection;
-using System.Collections.Generic;
-using DbLinq.Data.Linq.Identity;
 using DbLinq.Util;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Identity.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// IIdentityReader default implementation
     /// Currently uses reflection

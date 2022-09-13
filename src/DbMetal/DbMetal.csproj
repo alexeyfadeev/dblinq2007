@@ -1,219 +1,50 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{363FF43D-C870-4423-BE50-DAED7793A6D1}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DbMetal</RootNamespace>
-    <AssemblyName>DbMetal</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\DbLinq.snk</AssemblyOriginatorKeyFile>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\build.dbg\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyKeyFile>..\DbLinq.snk</AssemblyKeyFile>
-    <PlatformTarget>x86</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\build\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyKeyFile>..\DbLinq.snk</AssemblyKeyFile>
-    <PlatformTarget>x86</PlatformTarget>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Web.Extensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\DbLinq.ProductInfo.cs">
-      <Link>Properties\DbLinq.ProductInfo.cs</Link>
-    </Compile>
-    <Compile Include="Generator\AttributeDefinition.cs" />
-    <Compile Include="Generator\CodeDomGenerator.cs" />
-    <Compile Include="Generator\EntityInterface\Implementation\INotifyPropertyChangedImplementation.cs" />
-    <Compile Include="Generator\GenerationContext.cs" />
-    <Compile Include="Generator\ICodeGenerator.cs" />
-    <Compile Include="Generator\EntityInterface\Implementation\InterfaceImplementation.cs" />
-    <Compile Include="Generator\Implementation\CodeTextGenerator\CodeGenerator.Class.cs" />
-    <Compile Include="Generator\Implementation\CodeTextGenerator\CodeGenerator.Context.Ctor.cs" />
-    <Compile Include="Generator\Implementation\CodeTextGenerator\CodeGenerator.cs" />
-    <Compile Include="Generator\Implementation\CodeTextGenerator\CodeGenerator.Procedure.cs" />
-    <Compile Include="Generator\Implementation\CodeTextGenerator\CSCodeGenerator.cs" />
-    <Compile Include="Generator\Implementation\CodeTextGenerator\CSCodeWriter.cs" />
-    <Compile Include="Generator\CodeWriter.cs" />
-    <Compile Include="Generator\EntityInterface\IImplementation.cs" />
-    <Compile Include="Generator\EntityInterface\Implementation\IModifiedImplementation.cs" />
-    <Compile Include="Generator\EntityInterface\Implementation\INotifyPropertyChangingImplementation.cs" />
-    <Compile Include="Generator\Implementation\Processor.cs" />
-    <Compile Include="Generator\IProcessor.cs" />
-    <Compile Include="Generator\ISchemaLoaderFactory.cs" />
-    <Compile Include="Generator\SpecificationDefinition.cs" />
-    <Compile Include="Generator\ParameterDefinition.cs" />
-    <Compile Include="Language\EnglishWords.cs" />
-    <Compile Include="Language\FrenchWords.cs" />
-    <Compile Include="Language\GermanWords.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="Reference.cs" />
-    <Compile Include="Schema\DbmlRename.cs" />
-    <Compile Include="Schema\DbmlRenameLoader.cs" />
-    <Compile Include="Schema\NameAliasesLoader.cs" />
-    <Compile Include="Utility\VariablesExtension.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Configuration\ProvidersSection.cs" />
-    <Compile Include="Parameters.cs" />
-    <Compile Include="Schema\TableAlias.cs" />
-    <Compile Include="Generator\Implementation\SchemaLoaderFactory.cs" />
-    <Compile Include="Utility\EnvironmentExtension.cs" />
-    <Compile Include="Mono\Options.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\DbLinq.snk">
-      <Link>Properties\DbLinq.snk</Link>
-    </None>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DbLinq.Firebird\DbLinq.Firebird.csproj">
-      <Project>{E1AB58E4-357E-4031-90F3-6AABA9623047}</Project>
-      <Name>DbLinq.Firebird</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq.Ingres\DbLinq.Ingres.csproj">
-      <Project>{90D57CD9-D704-409E-88A1-0F22AC79065A}</Project>
-      <Name>DbLinq.Ingres</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq.MySql\DbLinq.MySql.csproj">
-      <Project>{FA8D1068-3341-4956-BF94-54C6A816BD9E}</Project>
-      <Name>DbLinq.MySql</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq.Oracle\DbLinq.Oracle.csproj">
-      <Project>{D9DE72A2-D885-4C54-A89E-302E6829101C}</Project>
-      <Name>DbLinq.Oracle</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq.PostgreSql\DbLinq.PostgreSql.csproj">
-      <Project>{32824F7E-9260-413C-B174-F3E315936FA7}</Project>
-      <Name>DbLinq.PostgreSql</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq.SqlCe\DbLinq.SqlCe.csproj">
-      <Project>{76fb2e0f-c03b-4996-ad7d-81db93d0bf07}</Project>
-      <Name>DbLinq.SqlCe</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq.Sqlite\DbLinq.Sqlite.csproj">
-      <Project>{60B9AFA1-99B4-4DE6-80E1-80BBED1AC755}</Project>
-      <Name>DbLinq.Sqlite</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DbLinq\DbLinq.csproj">
-      <Project>{7950197D-4122-49CB-9FD7-45E666BAFEC2}</Project>
-      <Name>DbLinq</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-      <Visible>False</Visible>
-      <ProductName>Установщик Windows 3.1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Language\EnglishWords.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Language\FrenchWords.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Language\GermanWords.txt" />
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <DependentAssembly Include="$(SolutionDir)..\lib\Npgsql.dll" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\Mono.Security.dll" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\Ingres.Stereo.dll" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\Oracle.DataAccess.dll" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\MySql.Data.dll" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\sqlite3.dll" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\System.Data.SQLite.DLL" />
-    <DependentAssembly Include="$(SolutionDir)..\lib\FirebirdSql.Data.FirebirdClient.dll" />
-  </ItemGroup>
-  <Target Name="AfterBuild">
-    <Copy SourceFiles="@(DependentAssembly)" DestinationFolder="$(OutputPath)" />
-  </Target>
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DbLinq.PostgreSql\DbLinq.PostgreSql.csproj" />
+      <ProjectReference Include="..\DbLinq.SqlServer\DbLinq.SqlServer.csproj" />
+      <ProjectReference Include="..\DbLinq\DbLinq.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="System.CodeDom" Version="6.0.0" />
+      <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Test\**" />
+      <Compile Remove="Util\**" />
+      <Compile Remove="Properties\Settings.Designer.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Test\**" />
+      <EmbeddedResource Remove="Util\**" />
+      <None Remove="Language\EnglishWords.txt" />
+      <EmbeddedResource Include="Language\EnglishWords.txt" />
+      <None Remove="Language\FrenchWords.txt" />
+      <EmbeddedResource Include="Language\FrenchWords.txt" />
+      <None Remove="Language\GermanWords.txt" />
+      <EmbeddedResource Include="Language\GermanWords.txt" />
+      <EmbeddedResource Remove="Properties\**" />
+      <None Remove="Properties\Settings.settings" />
+      <None Update="App.config">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Test\**" />
+      <None Remove="Util\**" />
+    </ItemGroup>
+
 </Project>

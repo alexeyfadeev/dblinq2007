@@ -23,8 +23,7 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.ComponentModel;
 using System.Data.Linq.Mapping;
 using System.Reflection;
@@ -32,6 +31,9 @@ using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// ModificationHandler class handles entities in two ways:
     /// 1. if entity implements IModifed, uses the interface and its IsModifed flag property

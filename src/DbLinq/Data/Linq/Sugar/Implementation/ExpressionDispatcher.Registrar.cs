@@ -24,26 +24,25 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using DbLinq.Util;
 
 using DbLinq.Data.Linq.Mapping;
-using DbLinq.Data.Linq.Sugar;
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 #if MONO_STRICT
 using DataContext = System.Data.Linq.DataContext;
 #else
-using DataContext = DbLinq.Data.Linq.DataContext;
 #endif
 
 namespace DbLinq.Data.Linq.Sugar.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     internal partial class ExpressionDispatcher
     {
 

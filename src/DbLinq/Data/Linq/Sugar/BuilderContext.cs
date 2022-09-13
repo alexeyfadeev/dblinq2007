@@ -24,16 +24,15 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-
-using DbLinq.Data.Linq.Sugar;
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+    using System.Collections.Generic;
+
     internal class BuilderContext
     {
         public Stack<MethodInfo> CallStack { get; private set; }

@@ -23,14 +23,15 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System.Collections.Generic;
+
 using System.Data;
-using System.IO;
 using DbLinq.Schema;
 using DbLinq.Schema.Dbml;
 
 namespace DbLinq.Vendor
 {
+    using System.IO;
+
 #if !MONO_STRICT
     public
 #endif

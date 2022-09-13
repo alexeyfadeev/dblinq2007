@@ -24,11 +24,11 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+    using System.Collections.Generic;
+
     internal interface IQueryCache
     {
         SelectQuery GetFromSelectCache(ExpressionChain expressions);

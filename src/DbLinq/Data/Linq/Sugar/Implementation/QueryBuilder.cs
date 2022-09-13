@@ -24,10 +24,6 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
@@ -38,6 +34,10 @@ using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Sugar.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// Full query builder, with cache management
     /// 1. Parses Linq Expression

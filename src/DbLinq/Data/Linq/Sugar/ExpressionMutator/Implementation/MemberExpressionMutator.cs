@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -33,6 +31,9 @@ using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     internal class MemberExpressionMutator : IMutableExpression
     {
         protected MemberExpression MemberExpression { get; private set; }

@@ -24,12 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace DbLinq.Util
 {
+    using System;
+
     /// <summary>
     /// What is extreme laziness? :)
     /// This class allows to get PropertyInfo or MethodInfo given a lambda (which allows to refactor members)

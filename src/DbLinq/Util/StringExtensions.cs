@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Text;
 
 namespace DbLinq.Util
 {
+    using System;
+
     internal static class StringExtensions
     {
         public static string Enquote(this string text, char startQuote, char endQuote)

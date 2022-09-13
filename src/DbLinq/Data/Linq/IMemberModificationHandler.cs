@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Data.Linq.Mapping;
 using System.Reflection;
 
 namespace DbLinq.Data.Linq
 {
-    /// <summary>
+	using System.Collections.Generic;
+
+	/// <summary>
     /// Interface to watch modifications on registered entities
     /// Currently supports:
     /// - IModified (kept for compatibility, not recommended since it does not allow partial updates)

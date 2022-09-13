@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using System.Linq.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+
     internal interface IDataRecordReader
     {
         /// <summary>

@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System;
 using DbLinq.Vendor;
 
 namespace DbLinq.Data.Linq
 {
+    using System;
+
 #if !MONO_STRICT
     public
 #endif

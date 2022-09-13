@@ -27,10 +27,11 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Linq.Expressions;
-using System.Collections.Generic;
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System.Collections.Generic;
+
     [DebuggerDisplay("ExpressionChain {Expressions.Count} Expression(s)")]
     internal class ExpressionChain : IEnumerable<Expression>
     {

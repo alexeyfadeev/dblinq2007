@@ -24,10 +24,7 @@
 // 
 #endregion
 
-using System;
 using System.Data.Linq.Mapping;
-
-using DbLinq.Data.Linq.Mapping;
 
 #if MONO_STRICT
 namespace System.Data.Linq.Mapping
@@ -35,6 +32,8 @@ namespace System.Data.Linq.Mapping
 namespace DbLinq.Data.Linq.Mapping
 #endif
 {
+    using System;
+
     public sealed class AttributeMappingSource : MappingSource
     {
         protected override MetaModel CreateModel(Type dataContextType)

@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Allows an Expression to enumerator its Operands and be mutated, ie changing its operands
     /// Depending on the Expression type (such as System.Linq.Expressions), a new copy may be returned

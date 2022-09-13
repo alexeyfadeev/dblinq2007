@@ -24,14 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-using DbLinq.Data.Linq.Sugar.Expressions;
-
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+
     [DebuggerDisplay("InputParameterExpression (current value={GetValue()})")]
 #if !MONO_STRICT
     public

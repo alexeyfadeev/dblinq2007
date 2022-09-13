@@ -24,17 +24,18 @@
 // 
 #endregion
 
-using System;
 using System.Collections.ObjectModel;
 using System.Data.Linq.Mapping;
-using System.Linq;
 using System.Reflection;
 using DbLinq.Util;
-using System.Collections.Generic;
 
 namespace DbLinq.Data.Linq.Mapping
 {
-    internal class AttributedMetaAssociation : MetaAssociation
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+
+	internal class AttributedMetaAssociation : MetaAssociation
     {
 		//Seperator used for key lists
 		private static readonly char[] STRING_SEPERATOR =  new[] { ',' };

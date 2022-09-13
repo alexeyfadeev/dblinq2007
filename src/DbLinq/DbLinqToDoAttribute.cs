@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System;
-
 namespace DbLinq
 {
+    using System;
+
     /// <summary>
     /// This attribute is used to mark unterminated methods.
     /// There are some differences between MONO_STRICT and non-strict modes

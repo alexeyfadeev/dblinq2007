@@ -26,7 +26,6 @@
 
 using System.Collections;
 using System.Data.Linq;
-using System.Linq;
 
 #if MONO_STRICT
 namespace System.Data.Linq
@@ -34,6 +33,8 @@ namespace System.Data.Linq
 namespace DbLinq.Data.Linq
 #endif
 {
+    using System.Linq;
+
     public partial interface ITable : IEnumerable, IQueryable
     {
         /// <summary>

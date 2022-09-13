@@ -1,8 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using System.Data.Common;
 
@@ -11,6 +8,10 @@ using DbLinq.Data.Linq.Identity;
 
 namespace DbLinq.Data.Linq
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public static class Utils
     {
         private static NumberFormatInfo FormatPoint = new NumberFormatInfo() { NumberDecimalSeparator = "." };

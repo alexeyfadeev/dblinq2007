@@ -24,15 +24,10 @@
 // 
 #endregion
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using System.Linq.Expressions;
 using System.ComponentModel;
 using System.Reflection;
-using DbLinq;
 using DbLinq.Util;
 
 #if MONO_STRICT
@@ -41,6 +36,10 @@ namespace System.Data.Linq
 namespace DbLinq.Data.Linq
 #endif
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public sealed class EntitySet<TEntity> : ICollection, ICollection<TEntity>, IEnumerable, IEnumerable<TEntity>, IList, IList<TEntity>, IListSource
         where TEntity : class
     {

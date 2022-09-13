@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System.Collections.Generic;
-
 namespace DbLinq.Schema
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Base name class, with DB name and words contained
     /// </summary>

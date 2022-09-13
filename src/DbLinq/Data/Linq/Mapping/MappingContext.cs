@@ -24,10 +24,10 @@
 // 
 #endregion
 
-using System;
-
 namespace DbLinq.Data.Linq.Mapping
 {
+    using System;
+
     /// <summary>
     /// MappingContext is used during the mapping process
     /// it contains events and properties give to mapper.

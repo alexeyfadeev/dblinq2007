@@ -23,8 +23,7 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
-using System.Collections.Generic;
+
 using System.ComponentModel;
 using System.Reflection;
 using System.Xml.Serialization;
@@ -37,6 +36,9 @@ using DbLinq.Schema.Dbml.Adapter;
 
 namespace DbLinq.Schema.Dbml
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Adataper for Database
     /// </summary>

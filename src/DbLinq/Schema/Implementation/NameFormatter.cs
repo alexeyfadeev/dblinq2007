@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using DbLinq.Factory;
@@ -33,15 +31,18 @@ using DbLinq.Language;
 
 namespace DbLinq.Schema.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// INameFormatter default implementation
     /// </summary>
-    internal class NameFormatter : INameFormatter
+    public class NameFormatter : INameFormatter
     {
         /// <summary>
         /// Singularization type
         /// </summary>
-        internal enum Singularization
+        public enum Singularization
         {
             /// <summary>
             /// The word plural doesn't change

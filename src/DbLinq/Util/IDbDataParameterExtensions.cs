@@ -24,12 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Data;
 using System.Data.Linq;
 
 namespace DbLinq.Util
 {
+    using System;
+
 #if !MONO_STRICT
     public
 #endif

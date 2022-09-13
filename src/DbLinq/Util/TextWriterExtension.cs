@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq.Expressions;
 
 namespace DbLinq.Util
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     internal static class TextWriterExtension
     {
         /// <summary>

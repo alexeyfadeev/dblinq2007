@@ -24,18 +24,13 @@
 // 
 #endregion
 
-using System;
 using System.Collections;
 using System.Data;
 using System.Data.Common;
 using System.Data.Linq;
 using System.Data.Linq.Mapping;
 using System.Linq.Expressions;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 
 #if MONO_STRICT
 using AttributeMappingSource  = System.Data.Linq.Mapping.AttributeMappingSource;
@@ -43,8 +38,6 @@ using AttributeMappingSource  = System.Data.Linq.Mapping.AttributeMappingSource;
 using AttributeMappingSource  = DbLinq.Data.Linq.Mapping.AttributeMappingSource;
 #endif
 
-using DbLinq;
-using DbLinq.Data.Linq;
 using DbLinq.Data.Linq.Database;
 using DbLinq.Data.Linq.Database.Implementation;
 using DbLinq.Data.Linq.Identity;
@@ -61,6 +54,11 @@ namespace System.Data.Linq
 namespace DbLinq.Data.Linq
 #endif
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+
     public partial class DataContext : IDisposable
     {
         //private readonly Dictionary<string, ITable> _tableMap = new Dictionary<string, ITable>();

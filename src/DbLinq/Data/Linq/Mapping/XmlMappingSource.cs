@@ -110,14 +110,9 @@ AutoSync = "Never" | "OnInsert" | "OnUpdate" | "Always" | "Default"
 ---------------- */
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Xml;
-using DbLinq;
 using DbLinq.Schema.Dbml;
 using DbLinq.Util;
 
@@ -127,6 +122,11 @@ namespace System.Data.Linq.Mapping
 namespace DbLinq.Data.Linq.Mapping
 #endif
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+
     public sealed class XmlMappingSource : System.Data.Linq.Mapping.MappingSource
     {
         DbmlDatabase db;

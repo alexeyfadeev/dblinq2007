@@ -23,17 +23,19 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System.Collections.Generic;
+
 using System.Globalization;
 
 namespace DbLinq.Language
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Words manipulation for a specific language.
     /// - Singularization/pluralization
     /// - Words extraction
     /// </summary>
-    internal interface ILanguageWords
+    public interface ILanguageWords
     {
         /// <summary>
         /// using English heuristics, convert 'dogs' to 'dog',

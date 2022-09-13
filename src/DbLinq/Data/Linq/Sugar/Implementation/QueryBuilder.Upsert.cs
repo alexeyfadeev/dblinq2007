@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Data.Linq.Mapping;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -36,6 +34,9 @@ using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Sugar.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     partial class QueryBuilder
     {
         protected class UpsertParameters

@@ -27,7 +27,6 @@ namespace DbLinq.Schema.Dbml
 {
     using System.Collections.Generic;
     using System.Linq;
-    using System.Xml.Serialization;
 
     /// <summary>
     /// CSharp representation of DBML file format.

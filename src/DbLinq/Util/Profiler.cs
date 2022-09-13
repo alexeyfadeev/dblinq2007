@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 
 namespace DbLinq.Util
 {
+    using System;
+    using System.IO;
+
 #if !MONO_STRICT
     public
 #endif

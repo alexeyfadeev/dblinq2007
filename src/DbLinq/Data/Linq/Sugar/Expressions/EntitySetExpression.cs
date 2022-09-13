@@ -24,20 +24,18 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Data.Linq.Mapping;
 using System.Reflection;
-
-using DbLinq.Util;
-using DbLinq.Data.Linq.Sugar.ExpressionMutator;
 using DbLinq.Data.Linq.Sugar.Implementation;
 
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// A GroupExpression holds a grouped result
     /// It is usually transparent, except for return value, where it mutates the type to IGrouping

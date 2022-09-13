@@ -23,15 +23,17 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System;
+
 using System.Data;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
 namespace DbLinq.Util
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
 #if !MONO_STRICT
     public
 #endif

@@ -24,15 +24,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using DbLinq.Data.Linq.Sugar.Expressions;
-
 namespace DbLinq.Data.Linq.Sugar.Expressions
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// A MetaTablePiece contains aliases for tables (used on joins)
     /// </summary>

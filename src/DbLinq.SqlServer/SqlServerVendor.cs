@@ -57,10 +57,10 @@ namespace DbLinq.SqlServer
 #endif
     class SqlServerVendor : Vendor.Implementation.Vendor
     {
-        public override string VendorName { get { return "SqlServer"; } }
+        public override string VendorName => "SqlServer";
 
         protected readonly SqlServerSqlProvider sqlProvider = new SqlServerSqlProvider();
-        public override ISqlProvider SqlProvider { get { return sqlProvider; } }
+        public override ISqlProvider SqlProvider => sqlProvider;
 
         protected override void AppendServer(StringBuilder connectionString, string host)
         {
@@ -98,10 +98,14 @@ namespace DbLinq.SqlServer
                 var dc = new DataColumn();
                 dc.ColumnName = column.MappedName;
                 dc.DataType = column.Member.GetMemberType();
-                if (dc.DataType.IsNullable())
+                if (dc.DataType.IsValueType)
                 {
-                    dc.AllowDBNull  = true;
-                    dc.DataType     = dc.DataType.GetNullableType();
+                    var underlyingType = Nullable.GetUnderlyingType(dc.DataType);
+                    if (underlyingType != null)
+                    {
+                        dc.AllowDBNull = true;
+                        dc.DataType = underlyingType;
+                    }
                 }
                 dt.Columns.Add(dc);
             }

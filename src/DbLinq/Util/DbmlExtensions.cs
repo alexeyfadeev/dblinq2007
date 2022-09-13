@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System.Linq;
 using DbLinq.Schema.Dbml;
 
 namespace DbLinq.Util
 {
+    using System.Linq;
+
     /// <summary>
     /// Executes a given SQL command, with parameter and delegate
     /// </summary>

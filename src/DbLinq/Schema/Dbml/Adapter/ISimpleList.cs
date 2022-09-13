@@ -24,11 +24,11 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-
 namespace DbLinq.Schema.Dbml.Adapter
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// sort of light IList<>
     /// </summary>

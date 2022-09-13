@@ -27,15 +27,14 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using System;
+
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace System.Data.Linq
 {
+	using Collections.Generic;
+
 	public sealed class EntitySet<TEntity> : IList, ICollection, IList<TEntity>, ICollection<TEntity>, IEnumerable<TEntity>, IEnumerable, IListSource where TEntity : class
 	{
 		public EntitySet ()

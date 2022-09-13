@@ -27,7 +27,6 @@
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Sugar

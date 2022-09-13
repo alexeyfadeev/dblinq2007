@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation
 {
+    using System.Collections.Generic;
+
     internal class ConstantExpressionMutator : IMutableExpression
     {
         protected ConstantExpression ConstantExpression { get; private set; }

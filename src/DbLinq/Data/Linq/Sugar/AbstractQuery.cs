@@ -24,17 +24,12 @@
 // 
 #endregion
 
-using DbLinq.Util;
 using DbLinq.Data.Linq.Database;
-using System.Collections.Generic;
-
-using DbLinq.Data.Linq.Sugar.Expressions;
 using DbLinq.Data.Linq.Sql;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Sugar

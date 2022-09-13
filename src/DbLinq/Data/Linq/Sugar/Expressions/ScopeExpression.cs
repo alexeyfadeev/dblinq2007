@@ -22,12 +22,14 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace DbLinq.Linq.Data.Sugar.Expressions
 {
+    using System;
+    using System.Collections.Generic;
+    using DbLinq.Data.Linq.Sugar.Expressions;
+
     /// <summary>
     /// ScopeExpression describes a selection.
     /// It can be present at top-level or as subexpressions

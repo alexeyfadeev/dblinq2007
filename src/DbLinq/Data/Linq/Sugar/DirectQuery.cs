@@ -24,22 +24,21 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using DbLinq.Data.Linq.Database;
 using System.Data;
 
 using DbLinq.Data.Linq.Sql;
-using DbLinq.Util;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+    using System.Collections.Generic;
+
     internal class DirectQuery : AbstractQuery
     {
         public IList<object> parameterValues { get; set; }

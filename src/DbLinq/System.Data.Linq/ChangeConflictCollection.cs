@@ -27,12 +27,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using System;
+
 using System.Collections;
-using System.Collections.Generic;
 
 namespace System.Data.Linq
 {
+	using Collections.Generic;
+
 	public sealed class ChangeConflictCollection : ICollection<ObjectChangeConflict>, ICollection, IEnumerable<ObjectChangeConflict>, IEnumerable
 
 	{

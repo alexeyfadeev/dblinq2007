@@ -27,11 +27,11 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using System;
-using System.Collections.Generic;
 
 namespace System.Data.Linq
 {
+	using Collections.Generic;
+
 	public interface IMultipleResults : IFunctionResult, IDisposable
 	{
 		IEnumerable<TElement> GetResult<TElement> ();

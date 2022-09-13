@@ -23,15 +23,16 @@
 // THE SOFTWARE.
 // 
 #endregion
-using System.Collections.Generic;
-using System.IO;
+
 using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
-using System.Xml.Serialization;
 
 namespace DbLinq.Schema.Dbml
 {
+    using System.Collections.Generic;
+    using System.IO;
+
     /// <summary>
     /// Serializes DBML
     /// </summary>

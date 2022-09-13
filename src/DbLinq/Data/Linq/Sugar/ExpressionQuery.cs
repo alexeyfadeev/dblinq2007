@@ -24,13 +24,13 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
-
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Represents the first step Expression analysis result
     /// </summary>

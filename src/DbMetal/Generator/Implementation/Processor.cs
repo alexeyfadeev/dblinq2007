@@ -92,7 +92,7 @@ namespace DbMetal.Generator.Implementation
             }
             catch (Exception e)
             {
-                Output.WriteErrorLine(Log, e.Message);
+                Console.WriteLine(e.Message);
                 return;
             }
 
@@ -123,7 +123,7 @@ namespace DbMetal.Generator.Implementation
             catch (Exception ex)
             {
                 string assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-                Log.WriteErrorLine(assemblyName + ": {0}", parameters.Debug ? ex.ToString() : ex.Message);
+                Console.WriteLine(assemblyName + ": " + (parameters.Debug ? ex.ToString() : ex.Message));
             }
         }
 
@@ -149,7 +149,7 @@ namespace DbMetal.Generator.Implementation
                 if (association.CardinalitySpecified && association.Cardinality == Cardinality.Many && association.IsForeignKey)
                 {
                     error = true;
-                    Log.WriteErrorLine("Error DBML1059: The IsForeignKey attribute of the Association element '{0}' of the Type element '{1}' cannnot be '{2}' when the Cardinality attribute is '{3}'.",
+                    Console.WriteLine("Error DBML1059: The IsForeignKey attribute of the Association element '{0}' of the Type element '{1}' cannnot be '{2}' when the Cardinality attribute is '{3}'.",
                             association.Name, table.Type.Name, association.IsForeignKey, association.Cardinality);
                 }
             }

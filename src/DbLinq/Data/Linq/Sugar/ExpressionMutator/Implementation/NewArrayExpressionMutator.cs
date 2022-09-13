@@ -24,14 +24,15 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using DbLinq.Data.Linq.Sugar.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     internal class NewArrayExpressionMutator : IMutableExpression
     {
         protected NewArrayExpression NewArrayExpression { get; private set; }

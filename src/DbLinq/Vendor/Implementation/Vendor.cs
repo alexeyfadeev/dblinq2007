@@ -24,11 +24,8 @@
 // 
 #endregion
 
-using System;
 using System.Reflection;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 
 #if MONO_STRICT
 using System.Data.Linq;
@@ -36,13 +33,14 @@ using System.Data.Linq;
 using DbLinq.Data.Linq;
 #endif
 
-using Data = DbLinq.Data;
-
 using IExecuteResult = System.Data.Linq.IExecuteResult;
 using System.Text;
 
 namespace DbLinq.Vendor.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// some IVendor functionality is the same for many vendors,
     /// implemented here as virtual functions.

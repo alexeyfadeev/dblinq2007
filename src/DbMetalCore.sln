@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbLinq", "DbLinq\DbLinq.csproj", "{5E05B6BB-8538-4041-8BD7-7DA5C30C310B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbLinq.PostgreSql", "DbLinq.PostgreSql\DbLinq.PostgreSql.csproj", "{3A75F3FB-B1AF-4D35-84C6-C77783EE34FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbLinq.SqlServer", "DbLinq.SqlServer\DbLinq.SqlServer.csproj", "{3455EBA4-928E-46B1-9C08-B5C6CB72DF04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMetal", "DbMetal\DbMetal.csproj", "{5879A0CC-09D0-46E8-BDC5-598B514903B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5E05B6BB-8538-4041-8BD7-7DA5C30C310B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E05B6BB-8538-4041-8BD7-7DA5C30C310B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E05B6BB-8538-4041-8BD7-7DA5C30C310B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E05B6BB-8538-4041-8BD7-7DA5C30C310B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A75F3FB-B1AF-4D35-84C6-C77783EE34FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A75F3FB-B1AF-4D35-84C6-C77783EE34FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A75F3FB-B1AF-4D35-84C6-C77783EE34FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A75F3FB-B1AF-4D35-84C6-C77783EE34FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3455EBA4-928E-46B1-9C08-B5C6CB72DF04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3455EBA4-928E-46B1-9C08-B5C6CB72DF04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3455EBA4-928E-46B1-9C08-B5C6CB72DF04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3455EBA4-928E-46B1-9C08-B5C6CB72DF04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5879A0CC-09D0-46E8-BDC5-598B514903B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5879A0CC-09D0-46E8-BDC5-598B514903B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5879A0CC-09D0-46E8-BDC5-598B514903B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5879A0CC-09D0-46E8-BDC5-598B514903B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

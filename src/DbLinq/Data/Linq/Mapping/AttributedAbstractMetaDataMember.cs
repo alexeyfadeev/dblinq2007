@@ -24,13 +24,14 @@
 // 
 #endregion
 
-using System;
 using System.Data.Linq.Mapping;
 using System.Reflection;
 using DbLinq.Util;
 
 namespace DbLinq.Data.Linq.Mapping
 {
+    using System;
+
     internal abstract class AttributedAbstractMetaDataMember : MetaDataMember
     {
 		protected AttributedAbstractMetaDataMember(MemberInfo member, MetaType declaringType, DataAttribute attribute)

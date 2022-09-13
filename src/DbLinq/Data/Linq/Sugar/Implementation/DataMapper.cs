@@ -24,11 +24,8 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Linq.Mapping;
-using System.Linq;
 using System.Reflection;
 
 using DbLinq.Data.Linq.Sugar.Expressions;
@@ -36,11 +33,14 @@ using DbLinq.Data.Linq.Sugar.Expressions;
 #if MONO_STRICT
 using System.Data.Linq;
 #else
-using DbLinq.Data.Linq;
 #endif
 
 namespace DbLinq.Data.Linq.Sugar.Implementation
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     internal class DataMapper : IDataMapper
     {
         /// <summary>

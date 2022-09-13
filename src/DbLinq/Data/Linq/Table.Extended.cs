@@ -24,11 +24,11 @@
 // 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
-
 namespace DbLinq.Data.Linq
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     /// <summary>
     /// T may be eg. class Employee or string - the output
     /// </summary>

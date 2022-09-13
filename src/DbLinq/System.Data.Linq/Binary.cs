@@ -28,11 +28,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-using System;
-using System.Linq;
-
 namespace System.Data.Linq
 {
+    using System.Linq;
+
     [SerializableAttribute]
     [System.Runtime.Serialization.DataContract]
     public sealed class Binary : IEquatable<Binary>

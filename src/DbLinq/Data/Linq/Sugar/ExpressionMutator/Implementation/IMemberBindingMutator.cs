@@ -24,11 +24,12 @@
 // 
 #endregion
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace DbLinq.Data.Linq.Sugar.ExpressionMutator.Implementation
 {
+    using System.Collections.Generic;
+
     internal interface IMemberBindingMutator
     {
         /// <summary>

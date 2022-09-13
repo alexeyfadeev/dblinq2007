@@ -24,17 +24,16 @@
 // 
 #endregion
 
-using System;
 using System.Data;
 
 #if MONO_STRICT
 using System.Data.Linq;
 #endif
 
-using DbLinq.Data.Linq.Sql;
-
 namespace DbLinq.Data.Linq.Database.Implementation
 {
+    using System;
+
     /// <summary>
     /// Transactional command
     /// </summary>

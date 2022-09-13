@@ -24,8 +24,6 @@
 // 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using DbLinq.Util;
@@ -36,6 +34,9 @@ using DbLinq.Util;
     namespace DbLinq.Data.Linq
 #endif
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Allows to specify 
     /// </summary>
@@ -129,8 +130,10 @@ using DbLinq.Util;
             {
                 if (mt.GetGenericTypeDefinition() == typeof(System.Data.Linq.EntitySet<>))
                     mt = mt.GetGenericArguments()[0];
+                /*
                 else if (mt.GetGenericTypeDefinition() == typeof(System.Data.Linq.EntityRef<>))
                     mt = mt.GetGenericArguments()[0];
+                    */
             }
             return mt;
         }
