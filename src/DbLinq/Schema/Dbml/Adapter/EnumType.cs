@@ -32,6 +32,7 @@ namespace DbLinq.Schema.Dbml.Adapter
 {
     using System.Collections.Generic;
     using System.Linq;
+    using MemberInfoExtensions = DbLinq.Util.MemberInfoExtensions;
 
 #if !MONO_STRICT
     public
