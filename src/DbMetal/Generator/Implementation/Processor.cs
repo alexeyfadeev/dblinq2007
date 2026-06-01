@@ -267,7 +267,7 @@ namespace DbMetal.Generator.Implementation
                     Directory.CreateDirectory(parameters.EntityFolder);
                 }
 
-                entityDirPrefix = parameters.EntityFolder + "\\";
+                entityDirPrefix = parameters.EntityFolder + Path.DirectorySeparatorChar;
             }
 
             // Entities

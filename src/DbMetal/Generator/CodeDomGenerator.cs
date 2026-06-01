@@ -283,7 +283,9 @@ namespace DbMetal.Generator
 
             CodeNamespace nameSpace = new CodeNamespace(nameSpaceName);
 
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading"));
             nameSpace.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
 
             if (!string.IsNullOrWhiteSpace(this.EntityFolder))
             {
@@ -336,7 +338,19 @@ namespace DbMetal.Generator
             methodBeginTrans.Comments.Add(new CodeCommentStatement($"<summary> Begin Transaction </summary>", true));
 
             iface.Members.Add(methodBeginTrans);
-            
+
+            var methodBeginTransAsync = new CodeMemberMethod()
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Final,
+                Name = "BeginTransactionAsync",
+                ReturnType = new CodeTypeReference("Task", new CodeTypeReference("DataConnectionTransaction"))
+            };
+
+            methodBeginTransAsync.Parameters.Add(new CodeParameterDeclarationExpression("CancellationToken", "cancellationToken = default"));
+            methodBeginTransAsync.Comments.Add(new CodeCommentStatement($"<summary> Begin Transaction Async </summary>", true));
+
+            iface.Members.Add(methodBeginTransAsync);
+
             var methodCommitTrans = new CodeMemberMethod()
             {
                 Attributes = MemberAttributes.Public | MemberAttributes.Final,
@@ -379,6 +393,7 @@ namespace DbMetal.Generator
                 nameSpace.Imports.Add(new CodeNamespaceImport($"{nameSpaceName}.{this.EntityFolder}"));
             }
 
+            nameSpace.Imports.Add(new CodeNamespaceImport("System.Linq"));
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB"));
             nameSpace.Imports.Add(new CodeNamespaceImport("LinqToDB.Data"));
 
@@ -402,8 +417,14 @@ namespace DbMetal.Generator
 
             constructor.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "connectionString"));
 
-            constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("providerName"));
-            constructor.BaseConstructorArgs.Add(new CodeArgumentReferenceExpression("connectionString"));
+            var dataOptionsCreation = new CodeObjectCreateExpression(new CodeTypeReference("DataOptions"));
+            var useConnectionStringCall = new CodeMethodInvokeExpression(
+                dataOptionsCreation,
+                "UseConnectionString",
+                new CodeArgumentReferenceExpression("providerName"),
+                new CodeArgumentReferenceExpression("connectionString")
+            );
+            constructor.BaseConstructorArgs.Add(useConnectionStringCall);
 
             /*
             else
