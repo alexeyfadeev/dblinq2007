@@ -299,20 +299,23 @@ namespace DbMetal.Generator.Implementation
                 this.ProcessFile(interfaceFileName);
 
                 // TestContext
-                string testFileName = $"{parameters.ContextName}TestDbContext.cs";
-
-                parameters.Write("<<< writing TestContext into file '{0}'", testFileName);
-
-                using (var streamWriterTestContext = new StreamWriter(testFileName))
+                if (parameters.GenerateTestContext == true)
                 {
-                    codeGenerator.WriteTestContext(
-                        streamWriterTestContext,
-                        dbSchema,
-                        generationContext,
-                        parameters.BulkExtensions);
-                }
+                    string testFileName = $"{parameters.ContextName}TestDbContext.cs";
 
-                this.ProcessFile(testFileName);
+                    parameters.Write("<<< writing TestContext into file '{0}'", testFileName);
+
+                    using (var streamWriterTestContext = new StreamWriter(testFileName))
+                    {
+                        codeGenerator.WriteTestContext(
+                            streamWriterTestContext,
+                            dbSchema,
+                            generationContext,
+                            parameters.BulkExtensions);
+                    }
+
+                    this.ProcessFile(testFileName);
+                }
             }
         }
 

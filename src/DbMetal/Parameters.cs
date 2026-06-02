@@ -239,6 +239,11 @@ namespace DbMetal
         /// </summary>
         public bool PartialEntities { get; set; }
 
+        /// <summary>
+        /// Generate test context (mock DbContext)
+        /// </summary>
+        public bool? GenerateTestContext { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {
