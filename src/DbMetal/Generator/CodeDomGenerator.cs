@@ -151,22 +151,6 @@ namespace DbMetal.Generator
                 });
         }
 
-        /*
-        public void WriteRepository(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
-        {
-            Context = context;
-
-            Provider.CreateGenerator(textWriter).GenerateCodeFromNamespace(
-                this.GenerateRepositoryDomModel(dbSchema, bulkExtensions),
-                textWriter,
-                new CodeGeneratorOptions()
-                    {
-                        BracingStyle = "C",
-                        IndentString = "\t",
-                    });
-        }
-        */
-
         public void WriteTestContext(TextWriter textWriter, Database dbSchema, GenerationContext context, bool bulkExtensions)
         {
             Context = context;
@@ -425,26 +409,6 @@ namespace DbMetal.Generator
                 new CodeArgumentReferenceExpression("connectionString")
             );
             constructor.BaseConstructorArgs.Add(useConnectionStringCall);
-
-            /*
-            else
-            {
-                var fieldConnStr = new CodeMemberField
-                {
-                    Attributes = MemberAttributes.Final | MemberAttributes.Private,
-                    Name = "connectionString",
-                    Type = new CodeTypeReference(typeof(string))
-                };
-
-                cls.Members.Add(fieldConnStr);
-
-                var assignStatement = new CodeAssignStatement(new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "connectionString"),
-                    new CodeArgumentReferenceExpression("connectionString"));
-
-                constructor.Statements.Add(assignStatement);
-            }
-            */
-
             constructor.Comments.Add(new CodeCommentStatement("<summary> Database context constructor </summary>", true));
             cls.Members.Add(constructor);
 
@@ -467,77 +431,6 @@ namespace DbMetal.Generator
 
                 cls.Members.Add(field);
             }
-
-            /*
-            if (this.NetCoreMode)
-            {
-                // OnModelCreating
-                var complexKeyTables = database.Tables
-                    .Select(x => new { table = x, pkCols = x.Type.Columns.Where(col => col.IsPrimaryKey).ToList() })
-                    .Where(x => x.pkCols.Count > 1).ToList();
-
-                if (complexKeyTables.Any())
-                {
-                    var method = new CodeMemberMethod
-                    {
-                        Attributes = MemberAttributes.Family | MemberAttributes.Override,
-                        Name = "OnModelCreating",
-                        ReturnType = new CodeTypeReference(typeof(void)),
-                        Parameters = { new CodeParameterDeclarationExpression(new CodeTypeReference("ModelBuilder"), "modelBuilder") }
-                    };
-
-                    foreach (var item in complexKeyTables)
-                    {
-                        var invk = new CodeMethodInvokeExpression(new CodeArgumentReferenceExpression("modelBuilder"),
-                            $"Entity<{item.table.Member}>");
-
-                        var statement = new CodeMethodInvokeExpression(invk, "HasKey", new CodeSnippetExpression(
-                            $"x => new {{ {string.Join(", ", item.pkCols.Select(x => "x." + x.Member))} }}"));
-
-                        method.Statements.Add(statement);
-                    }
-
-                    method.Comments.Add(new CodeCommentStatement("<summary> On model creating </summary>", true));
-
-                    cls.Members.Add(method);
-                }
-
-                // OnConfiguring
-                var methodConf = new CodeMemberMethod
-                {
-                    Attributes = MemberAttributes.Family | MemberAttributes.Override,
-                    Name = "OnConfiguring",
-                    ReturnType = new CodeTypeReference(typeof(void)),
-                    Parameters = { new CodeParameterDeclarationExpression(new CodeTypeReference("DbContextOptionsBuilder"), "optionsBuilder") }
-                };
-
-                var coreProviders = new Dictionary<string, string>
-                    {
-                        { "SqlServer", "UseSqlServer" },
-                        { "PostgreSQL", "UseNpgsql" },
-                        { "MySQL", "UseMySql" },
-                        { "SQLite", "UseSqlite" },
-                        { "SqlCe", "UseSqlCe" },
-                        { "Firebird", "UseFirebirdSql" }
-                    }
-                    .ToDictionary(x => x.Key.ToLower(), x => x.Value);
-
-                if (!coreProviders.ContainsKey(provider))
-                {
-                    throw new NotSupportedException("Provider not supported: " + provider);
-                }
-
-                methodConf.Statements.Add(
-                    new CodeMethodInvokeExpression(
-                        new CodeArgumentReferenceExpression("optionsBuilder"),
-                        coreProviders[provider],
-                        new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "connectionString")));
-
-                methodConf.Comments.Add(new CodeCommentStatement("<summary> On configuring </summary>", true));
-
-                cls.Members.Add(methodConf);
-            }
-            */
 
             nameSpace.Types.Add(cls);
 
@@ -628,22 +521,6 @@ namespace DbMetal.Generator
                 Attributes = MemberAttributes.Public,
                 Parameters = { new CodeParameterDeclarationExpression(contextInterfaceName, "context") },
             };
-
-            /*
-            else
-            {
-                var fieldConnStr = new CodeMemberField
-                {
-                    Attributes = MemberAttributes.Final | MemberAttributes.Private,
-                    Name = "connectionString",
-                    Type = new CodeTypeReference(typeof(string))
-                };
-
-                cls.Members.Add(fieldConnStr);
-
-                constructor.Statements.Add(assignStatement);
-            }
-            */
 
             var contextProp = new CodePropertyReferenceExpression(new CodeThisReferenceExpression(), "context");
 
