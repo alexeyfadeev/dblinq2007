@@ -24,6 +24,7 @@
 // 
 #endregion
 
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace DbLinq.Schema
@@ -50,12 +51,17 @@ namespace DbLinq.Schema
         /// should be used
         /// </summary>
         public CultureInfo Culture { get; private set; }
+        /// <summary>
+        /// Custom name mapping for exact database object names (db name -> generated name)
+        /// </summary>
+        public Dictionary<string, string> CustomNameMapping { get; private set; }
 
-        public NameFormat(bool pluralize, Case _case, CultureInfo culture)
+        public NameFormat(bool pluralize, Case _case, CultureInfo culture, Dictionary<string, string> customNameMapping = null)
         {
             Pluralize = pluralize;
             Case = _case;
             Culture = culture;
+            CustomNameMapping = customNameMapping ?? new Dictionary<string, string>();
         }
     }
 }

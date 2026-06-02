@@ -244,6 +244,11 @@ namespace DbMetal
         /// </summary>
         public bool? GenerateTestContext { get; set; }
 
+        /// <summary>
+        /// Custom name mapping for database objects (exact match: db name -> generated name)
+        /// </summary>
+        public Dictionary<string, string> CustomNameMapping { get; set; }
+
         TextWriter log;
         public TextWriter Log
         {

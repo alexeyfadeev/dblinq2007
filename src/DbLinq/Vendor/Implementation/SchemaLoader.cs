@@ -34,6 +34,7 @@ using DbLinq.Data.Linq;
 
 using DbLinq.Factory;
 using DbLinq.Schema;
+using DbLinq.Schema.Implementation;
 using DbLinq.Schema.Dbml;
 using System.Text.RegularExpressions;
 
@@ -95,6 +96,12 @@ namespace DbLinq.Vendor.Implementation
         public virtual Database Load(string databaseName, INameAliases nameAliases, NameFormat nameFormat,
             bool loadStoredProcedures, string contextNamespace, string entityNamespace, string contextName)
         {
+            // Set custom name mapping on the formatter
+            if (NameFormatter is NameFormatter formatter && nameFormat.CustomNameMapping != null)
+            {
+                formatter.CustomNameMapping = nameFormat.CustomNameMapping;
+            }
+
             // check if connection is open. Note: we may use something more flexible
             if (Connection.State != ConnectionState.Open)
                 Connection.Open();

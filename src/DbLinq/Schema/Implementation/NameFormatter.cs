@@ -80,9 +80,30 @@ namespace DbLinq.Schema.Implementation
         private readonly IDictionary<string, ILanguageWords> languageWords = new Dictionary<string, ILanguageWords>();
 
         /// <summary>
+        /// Custom name mapping for exact database object names
+        /// </summary>
+        public Dictionary<string, string> CustomNameMapping { get; set; }
+
+        /// <summary>
         /// Substitution char for invalid characters
         /// </summary>
         private const char SubstitutionChar = '_';
+
+        /// <summary>
+        /// Tries to get custom name from mapping. Returns true if exact match found.
+        /// </summary>
+        /// <param name="dbName">Database object name</param>
+        /// <param name="customName">Custom name if found</param>
+        /// <returns>True if custom mapping exists</returns>
+        protected bool TryGetCustomName(string dbName, out string customName)
+        {
+            if (CustomNameMapping != null && !string.IsNullOrEmpty(dbName))
+            {
+                return CustomNameMapping.TryGetValue(dbName, out customName);
+            }
+            customName = null;
+            return false;
+        }
 
         /// <summary>
         /// Gets the ILanguageWords by CultureInfo.
@@ -337,8 +358,17 @@ namespace DbLinq.Schema.Implementation
         /// <returns></returns>
         public SchemaName GetSchemaName(string dbName, WordsExtraction extraction, NameFormat nameFormat, string contextClassNamePostfix)
         {
-            var words = GetLanguageWords(nameFormat.Culture);
             var schemaName = new SchemaName { DbName = dbName };
+
+            // Check custom mapping first
+            if (TryGetCustomName(dbName, out var customName))
+            {
+                schemaName.ClassName = customName + contextClassNamePostfix;
+                schemaName.NameWords = new List<string> { customName };
+                return schemaName;
+            }
+
+            var words = GetLanguageWords(nameFormat.Culture);
             schemaName.NameWords = ExtractWords(words, dbName, extraction);
             schemaName.ClassName = Format(words, schemaName.NameWords, nameFormat.Case, Singularization.DontChange) + contextClassNamePostfix;
             return schemaName;
@@ -353,8 +383,17 @@ namespace DbLinq.Schema.Implementation
         /// <returns></returns>
         public ProcedureName GetProcedureName(string dbName, WordsExtraction extraction, NameFormat nameFormat)
         {
-            var words = GetLanguageWords(nameFormat.Culture);
             var procedureName = new ProcedureName { DbName = dbName };
+
+            // Check custom mapping first
+            if (TryGetCustomName(dbName, out var customName))
+            {
+                procedureName.MethodName = customName;
+                procedureName.NameWords = new List<string> { customName };
+                return procedureName;
+            }
+
+            var words = GetLanguageWords(nameFormat.Culture);
             procedureName.NameWords = ExtractWords(words, dbName, extraction);
             procedureName.MethodName = Format(words, procedureName.NameWords, nameFormat.Case, Singularization.DontChange);
             return procedureName;
@@ -369,8 +408,17 @@ namespace DbLinq.Schema.Implementation
         /// <returns></returns>
         public ParameterName GetParameterName(string dbName, WordsExtraction extraction, NameFormat nameFormat)
         {
-            var words = GetLanguageWords(nameFormat.Culture);
             var parameterName = new ParameterName { DbName = dbName };
+
+            // Check custom mapping first
+            if (TryGetCustomName(dbName, out var customName))
+            {
+                parameterName.CallName = customName;
+                parameterName.NameWords = new List<string> { customName };
+                return parameterName;
+            }
+
+            var words = GetLanguageWords(nameFormat.Culture);
             parameterName.NameWords = ExtractWords(words, dbName, extraction);
             parameterName.CallName = Format(words, parameterName.NameWords, Case.camelCase, Singularization.DontChange);
             return parameterName;
@@ -385,8 +433,18 @@ namespace DbLinq.Schema.Implementation
         /// <returns></returns>
         public TableName GetTableName(string dbName, WordsExtraction extraction, NameFormat nameFormat)
         {
-            var words = GetLanguageWords(nameFormat.Culture);
             var tableName = new TableName { DbName = dbName };
+
+            // Check custom mapping first
+            if (TryGetCustomName(dbName, out var customName))
+            {
+                tableName.ClassName = customName;
+                tableName.MemberName = customName;
+                tableName.NameWords = new List<string> { customName };
+                return tableName;
+            }
+
+            var words = GetLanguageWords(nameFormat.Culture);
             tableName.NameWords = ExtractWords(words, dbName, extraction);
             // if no extraction (preset name, just copy it)
             if (extraction == WordsExtraction.None)
@@ -406,8 +464,17 @@ namespace DbLinq.Schema.Implementation
         /// <returns></returns>
         public ColumnName GetColumnName(string dbName, WordsExtraction extraction, NameFormat nameFormat)
         {
-            var words = GetLanguageWords(nameFormat.Culture);
             var columnName = new ColumnName { DbName = dbName };
+
+            // Check custom mapping first
+            if (TryGetCustomName(dbName, out var customName))
+            {
+                columnName.PropertyName = customName;
+                columnName.NameWords = new List<string> { customName };
+                return columnName;
+            }
+
+            var words = GetLanguageWords(nameFormat.Culture);
             columnName.NameWords = ExtractWords(words, dbName, extraction);
             // if no extraction (preset name, just copy it)
             if (extraction == WordsExtraction.None)

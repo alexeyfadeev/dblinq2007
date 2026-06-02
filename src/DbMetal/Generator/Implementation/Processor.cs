@@ -330,7 +330,7 @@ namespace DbMetal.Generator.Implementation
                 parameters.Write(">>> Reading schema from {0} database", schemaLoader.Vendor.VendorName);
 
                 dbSchema = schemaLoader.Load(parameters.Database, nameAliases,
-                    new NameFormat(parameters.Pluralize, GetCase(parameters), new CultureInfo(parameters.Culture)),
+                    new NameFormat(parameters.Pluralize, GetCase(parameters), new CultureInfo(parameters.Culture), parameters.CustomNameMapping),
                     parameters.Sprocs, parameters.Namespace, parameters.Namespace, parameters.ContextName);
 
                 var neededTables = new List<Table>();
